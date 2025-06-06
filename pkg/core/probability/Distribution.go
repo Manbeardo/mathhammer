@@ -1,3 +1,5 @@
+// package probability defines various types and functions for manipulating discrete
+// probability distributions
 package probability
 
 import (

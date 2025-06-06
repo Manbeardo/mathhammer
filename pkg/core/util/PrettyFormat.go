@@ -30,7 +30,7 @@ func (bs *bufferedState) String() string {
 	return bs.buf.String()
 }
 
-func PrettyFormat(w fmt.State, v rune, i interface{}) {
+func PrettyFormat(w fmt.State, v rune, i any) {
 	r := reflect.ValueOf(i)
 	for r.Kind() == reflect.Pointer {
 		r = r.Elem()
@@ -48,7 +48,7 @@ func PrettyFormat(w fmt.State, v rune, i interface{}) {
 	fmt.Fprintf(w, fmt.FormatString(w, v), i)
 }
 
-func SprettyFormat(w fmt.State, v rune, i interface{}) string {
+func SprettyFormat(w fmt.State, v rune, i any) string {
 	bs := newBufferedState(w)
 	PrettyFormat(bs, v, i)
 	return bs.String()
