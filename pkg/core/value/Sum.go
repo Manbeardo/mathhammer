@@ -3,19 +3,23 @@ package value
 import (
 	"cmp"
 
-	"github.com/Manbeardo/mathhammer/pkg/core/probability"
+	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 )
 
-type Sum []Interface
+type SumT []Interface
 
-var _ Interface = (*Sum)(nil)
+func Sum(values ...Interface) SumT {
+	return SumT(values)
+}
 
-func (sum Sum) Distribution() probability.Distribution[int64] {
-	dists := []probability.Distribution[int64]{}
+var _ Interface = (*SumT)(nil)
+
+func (sum SumT) Distribution() prob.Dist[int64] {
+	dists := []prob.Dist[int64]{}
 	for _, i := range sum {
 		dists = append(dists, i.Distribution())
 	}
-	return probability.Reduce(
+	return prob.Reduce(
 		dists,
 		func(a, b int64) int64 { return a + b },
 		cmp.Compare,

@@ -4,6 +4,8 @@ import (
 	"cmp"
 	"math"
 	"slices"
+
+	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 )
 
 type ModifierKind string
@@ -28,12 +30,25 @@ const (
 
 type Modifier interface {
 	Apply(float64) float64
-	Priority() int
+	Priority() int64
 }
 
 type Modifiers []Modifier
 
-func (ms Modifiers) Apply(kind ModifierKind, in int) int {
+func (ms Modifiers) ApplyDist(
+	kind ModifierKind,
+	dist prob.Dist[int64],
+) prob.Dist[int64] {
+	return prob.Map(
+		dist,
+		func(in int64) int64 {
+			return ms.Apply(kind, in)
+		},
+		cmp.Compare,
+	)
+}
+
+func (ms Modifiers) Apply(kind ModifierKind, in int64) int64 {
 	slices.SortFunc(ms, func(a, b Modifier) int {
 		return cmp.Compare(a.Priority(), b.Priority())
 	})
@@ -41,7 +56,7 @@ func (ms Modifiers) Apply(kind ModifierKind, in int) int {
 	for _, m := range ms {
 		runningValue = m.Apply(runningValue)
 	}
-	result := int(math.Ceil(runningValue))
+	result := int64(math.Ceil(runningValue))
 
 	switch kind {
 	case ModWeaponRollHit, ModWeaponRollWound:
@@ -84,61 +99,61 @@ func (ms Modifiers) Apply(kind ModifierKind, in int) int {
 }
 
 type ReplacementModifier struct {
-	N int
+	N int64
 }
 
 func (m ReplacementModifier) Apply(in float64) float64 {
 	return float64(m.N)
 }
 
-func (m ReplacementModifier) Priority() int {
+func (m ReplacementModifier) Priority() int64 {
 	return 0
 }
 
 type DivisionModifier struct {
-	N int
+	N int64
 }
 
 func (m DivisionModifier) Apply(in float64) float64 {
 	return in / float64(m.N)
 }
 
-func (m DivisionModifier) Priority() int {
+func (m DivisionModifier) Priority() int64 {
 	return 1
 }
 
 type MultiplicationModifier struct {
-	N int
+	N int64
 }
 
 func (m MultiplicationModifier) Apply(in float64) float64 {
 	return in * float64(m.N)
 }
 
-func (m MultiplicationModifier) Priority() int {
+func (m MultiplicationModifier) Priority() int64 {
 	return 2
 }
 
 type AdditionModifier struct {
-	N int
+	N int64
 }
 
 func (m AdditionModifier) Apply(in float64) float64 {
 	return in + float64(m.N)
 }
 
-func (m AdditionModifier) Priority() int {
+func (m AdditionModifier) Priority() int64 {
 	return 3
 }
 
 type SubtractionModifier struct {
-	N int
+	N int64
 }
 
 func (m SubtractionModifier) Apply(in float64) float64 {
 	return in - float64(m.N)
 }
 
-func (m SubtractionModifier) Priority() int {
+func (m SubtractionModifier) Priority() int64 {
 	return 4
 }

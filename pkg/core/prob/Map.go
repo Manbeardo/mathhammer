@@ -1,13 +1,13 @@
-package probability
+package prob
 
 import "math/big"
 
-// maps a probability distribution from outcome type T to U
+// Map maps a probability distribution from outcome type T to U
 func Map[T comparable, U comparable](
-	dist Distribution[T],
+	dist Dist[T],
 	mapper func(T) U,
 	cmp func(U, U) int,
-) Distribution[U] {
+) Dist[U] {
 	out := map[U]*big.Rat{}
 	for t, p := range dist.m {
 		u := mapper(t)

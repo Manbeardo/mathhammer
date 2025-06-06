@@ -1,15 +1,15 @@
-package probability
+package prob
 
 import "math/big"
 
 // reduces probability distributions of multiple independent events into an aggregate
 // probability distribution
 func Reduce[T comparable, U comparable](
-	dists []Distribution[T],
+	dists []Dist[T],
 	collector func(U, T) U,
 	cmp func(U, U) int,
 	initialValue U,
-) Distribution[U] {
+) Dist[U] {
 	prev := map[U]*big.Rat{
 		(initialValue): big.NewRat(1, 1),
 	}

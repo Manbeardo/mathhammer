@@ -1,8 +1,13 @@
 package core
 
 import (
+	"cmp"
 	"math"
 	"slices"
+
+	"github.com/Manbeardo/mathhammer/pkg/core/check"
+	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/value"
 )
 
 type Attack struct {
@@ -17,8 +22,12 @@ func NewAttack(targets AttackTargets) *Attack {
 	}
 }
 
-func (a *Attack) Modify(kind ModifierKind, in int) int {
+func (a *Attack) Modify(kind ModifierKind, in int64) int64 {
 	return a.Modifiers[kind].Apply(kind, in)
+}
+
+func (a *Attack) ModifyDist(kind ModifierKind, dist prob.Dist[int64]) prob.Dist[int64] {
+	return a.Modifiers[kind].ApplyDist(kind, dist)
 }
 
 func (a *Attack) Clone() *Attack {
@@ -61,65 +70,69 @@ func (a *Attack) ApplyTriggerEffects(trigger AbilityTrigger) {
 	}
 }
 
-func (a *Attack) EvalAttacks() int {
-	unmodified := a.AttackerWeaponProfile.tpl.Attacks.Eval()
-	final := a.Modifiers[ModWeaponAttacks].Apply(ModWeaponAttacks, unmodified)
-	return final
+func (a *Attack) Attacks() prob.Dist[int64] {
+	return a.ModifyDist(
+		ModWeaponAttacks,
+		a.AttackerWeaponProfile.tpl.Attacks.Distribution(),
+	)
 }
 
-func (a *Attack) RollHits(attacks int) RollResult {
+func (a *Attack) Hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
 	skill := a.Modify(
 		ModWeaponSkill,
 		a.AttackerWeaponProfile.tpl.Skill,
 	)
-	return Roller{
-		Value:                    RollValue{N: 6},
-		SuccessTarget:            skill,
+	return check.Calculate(value.Roll(6), check.Opts{
+		Count:                    attacks,
+		SuccessTarget:            value.Int(skill),
 		CriticalSuccessThreshold: 6,
 		CriticalFailureThreshold: 1,
-		ModifyFn: func(in int) int {
+		ModifierFn: func(in int64) int64 {
 			return a.Modify(ModWeaponRollHit, in)
 		},
-	}.RollN(attacks)
+	})
 }
 
-func (a *Attack) RollWounds(hits int) RollResult {
-	// TODO: figure out whether this is rolled per hit or per profile
-	strength := a.Modify(
+func (a *Attack) Wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
+	strengthDist := a.ModifyDist(
 		ModWeaponStrength,
-		a.AttackerWeaponProfile.tpl.Strength.Eval(),
+		a.AttackerWeaponProfile.tpl.Strength.Distribution(),
 	)
 	toughness := a.Modify(
 		ModModelToughness,
 		a.DefenderModel.tpl.Toughness,
 	)
-	var target int
-	if strength >= toughness*2 {
-		target = 2
-	} else if strength > toughness {
-		target = 3
-	}
-	if strength == toughness {
-		target = 4
-	}
-	if strength*2 <= toughness {
-		target = 6
-	} else if strength < toughness {
-		target = 5
-	}
+	targetDist := prob.Map(
+		strengthDist,
+		func(strength int64) int64 {
+			switch {
+			case strength >= toughness*2:
+				return 2
+			case strength > toughness:
+				return 3
+			case strength == toughness:
+				return 4
+			case strength*2 <= toughness:
+				return 6
+			default:
+				return 5
+			}
+		},
+		cmp.Compare,
+	)
 
-	return Roller{
-		Value:                    RollValue{N: 6},
-		SuccessTarget:            target,
+	return check.Calculate(value.Roll(6), check.Opts{
+		Count:                    hits,
+		SuccessTarget:            targetDist,
 		CriticalSuccessThreshold: 6,
 		CriticalFailureThreshold: 1,
-		ModifyFn: func(in int) int {
+		ModifierFn: func(in int64) int64 {
 			return a.Modify(ModWeaponRollWound, in)
 		},
-	}.RollN(hits)
+	})
 }
 
-func (a *Attack) RollSave() RollResult {
+func (a *Attack) Saves() RollResult {
 	ap := a.Modify(
 		ModWeaponArmorPen,
 		a.AttackerWeaponProfile.tpl.ArmorPenetration,

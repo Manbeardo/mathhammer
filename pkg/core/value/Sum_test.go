@@ -4,18 +4,18 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Manbeardo/mathhammer/pkg/core/probability"
+	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSum(t *testing.T) {
 	t.Run("has a correct distribution for 2D6", func(t *testing.T) {
-		v := Sum{
-			Roll{N: 6},
-			Roll{N: 6},
+		v := SumT{
+			RollT{N: 6},
+			RollT{N: 6},
 		}
 		dist := v.Distribution()
-		assert.Equal(t, probability.NewDistribution(map[int64]*big.Rat{
+		assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
 			2:  big.NewRat(1, 36),
 			3:  big.NewRat(2, 36),
 			4:  big.NewRat(3, 36),

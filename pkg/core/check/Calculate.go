@@ -3,28 +3,48 @@ package check
 import (
 	"slices"
 
-	"github.com/Manbeardo/mathhammer/pkg/core/probability"
+	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 	"github.com/Manbeardo/mathhammer/pkg/core/value"
 )
 
-// TODO: convert to a distribution of outcomes
-
-func Calculate(v value.Interface, opts Opts) probability.Distribution[Outcome] {
-	count := opts.Count
-	if count == 0 {
-		count = 1
+func Calculate(v value.Interface, opts Opts) prob.Dist[Outcome] {
+	countV := opts.Count
+	if countV == nil {
+		countV = value.Int(1)
 	}
-	dist := probability.Map(
-		v.Distribution(),
-		func(i int64) Outcome {
-			return opts.eval(i)
+	countDist := countV.Distribution()
+
+	targetV := opts.SuccessTarget
+	if targetV == nil {
+		targetV = value.Int(0)
+	}
+	targetDist := opts.SuccessTarget.Distribution()
+
+	valueDist := v.Distribution()
+
+	return prob.FlatMap(
+		targetDist,
+		func(target int64) prob.Dist[Outcome] {
+			rollDist := prob.Map(
+				valueDist,
+				func(v int64) Outcome {
+					return opts.eval(v, target)
+				},
+				CompareOutcomes,
+			)
+			return prob.FlatMap(
+				countDist,
+				func(count int64) prob.Dist[Outcome] {
+					return prob.Reduce(
+						slices.Repeat([]prob.Dist[Outcome]{rollDist}, int(count)),
+						func(a, b Outcome) Outcome { return SumOutcomes(a, b) },
+						CompareOutcomes,
+						Outcome{},
+					)
+				},
+				CompareOutcomes,
+			)
 		},
 		CompareOutcomes,
-	)
-	return probability.Reduce(
-		slices.Repeat([]probability.Distribution[Outcome]{dist}, int(count)),
-		func(a, b Outcome) Outcome { return SumOutcomes(a, b) },
-		CompareOutcomes,
-		Outcome{},
 	)
 }

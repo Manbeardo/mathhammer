@@ -3,17 +3,21 @@ package value
 import (
 	"math/big"
 
-	"github.com/Manbeardo/mathhammer/pkg/core/probability"
+	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 )
 
-type Int struct {
+type IntT struct {
 	N int64
 }
 
-var _ Interface = (*Int)(nil)
+func Int(n int64) IntT {
+	return IntT{N: n}
+}
 
-func (v Int) Distribution() probability.Distribution[int64] {
-	return probability.NewDistribution(map[int64]*big.Rat{
+var _ Interface = (*IntT)(nil)
+
+func (v IntT) Distribution() prob.Dist[int64] {
+	return prob.NewDistribution(map[int64]*big.Rat{
 		(v.N): big.NewRat(1, 1),
 	})
 }

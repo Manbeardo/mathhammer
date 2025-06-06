@@ -1,7 +1,7 @@
 package value
 
-import "github.com/Manbeardo/mathhammer/pkg/core/probability"
+import "github.com/Manbeardo/mathhammer/pkg/core/prob"
 
 type Interface interface {
-	Distribution() probability.Distribution[int64]
+	Distribution() prob.Dist[int64]
 }

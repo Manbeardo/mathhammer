@@ -1,6 +1,6 @@
-// package probability defines various types and functions for manipulating discrete
+// package prob defines various types and functions for manipulating discrete
 // probability distributions
-package probability
+package prob
 
 import (
 	"cmp"
@@ -13,16 +13,17 @@ import (
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
-type Distribution[T comparable] struct {
+// a discrete probability distribution
+type Dist[T comparable] struct {
 	m        map[T]*big.Rat
 	outcomes []T
 }
 
-func NewDistribution[T cmp.Ordered](m map[T]*big.Rat) Distribution[T] {
+func NewDistribution[T cmp.Ordered](m map[T]*big.Rat) Dist[T] {
 	return NewDistributionFunc(m, cmp.Compare)
 }
 
-func NewDistributionFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Distribution[T] {
+func NewDistributionFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Dist[T] {
 	var psum big.Rat
 	for _, p := range m {
 		psum.Add(&psum, p)
@@ -31,7 +32,7 @@ func NewDistributionFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Dis
 		panic("sum of all probabilities must be 1")
 	}
 
-	d := Distribution[T]{
+	d := Dist[T]{
 		m:        maps.Clone(m),
 		outcomes: slices.Collect(maps.Keys(m)),
 	}
@@ -39,11 +40,11 @@ func NewDistributionFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Dis
 	return d
 }
 
-func (d Distribution[T]) Format(w fmt.State, v rune) {
+func (d Dist[T]) Format(w fmt.State, v rune) {
 	util.PrettyFormat(w, v, d)
 }
 
-func (d Distribution[T]) Iter() iter.Seq2[T, *big.Rat] {
+func (d Dist[T]) Iter() iter.Seq2[T, *big.Rat] {
 	return func(yield func(T, *big.Rat) bool) {
 		for _, k := range d.outcomes {
 			if !yield(k, d.m[k]) {
@@ -51,4 +52,8 @@ func (d Distribution[T]) Iter() iter.Seq2[T, *big.Rat] {
 			}
 		}
 	}
+}
+
+func (d Dist[T]) Distribution() Dist[T] {
+	return d
 }

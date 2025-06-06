@@ -3,7 +3,7 @@ package core
 type Model struct {
 	tpl         *ModelTemplate
 	weapons     []*Weapon
-	woundsTaken int
+	woundsTaken int64
 }
 
 func NewModel(tpl *ModelTemplate) *Model {
@@ -39,10 +39,10 @@ func (m *Model) Abilities() []Ability {
 
 type ModelTemplate struct {
 	Name       string
-	Toughness  int
-	Save       int
-	Wounds     int
-	Leadership int
-	Weapons    map[*WeaponTemplate]int
+	Toughness  int64
+	Save       int64
+	Wounds     int64
+	Leadership int64
+	Weapons    map[*WeaponTemplate]int64
 	Abilities  []Ability
 }
