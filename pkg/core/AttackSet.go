@@ -36,25 +36,25 @@ func NewAttackSet(attacker *Unit, defender *Unit, kind AttackKind) *AttackSet {
 
 func (as *AttackSet) Run() {
 	// roll attacks per profile
-	for _, attacks := range as.profileTplToAttacks {
-		for _, attack := range attacks {
-			attackCount := attack.EvalAttacks()
-			hitResults := attack.RollHits(attackCount)
-			woundResults := attack.RollWounds(hitResults.Successes())
+	// for _, attacks := range as.profileTplToAttacks {
+	// 	for _, attack := range attacks {
+	// 		attackCount := attack.EvalAttacks()
+	// 		hitResults := attack.RollHits(attackCount)
+	// 		woundResults := attack.RollWounds(hitResults.Successes())
 
-			for range woundResults.Successes() {
-				if attack.DefenderUnit.IsDead() {
-					return
-				}
-				attack := attack.Clone()
-				attack.AllocateWound()
-				saveResult := attack.RollSave()
-				if saveResult.Successes() > 0 {
-					continue
-				}
-				dmg := attack.EvalDamage()
-				attack.DefenderModel.woundsTaken += dmg
-			}
-		}
-	}
+	// 		for range woundResults.Successes() {
+	// 			if attack.DefenderUnit.IsDead() {
+	// 				return
+	// 			}
+	// 			attack := attack.Clone()
+	// 			attack.AllocateWound()
+	// 			saveResult := attack.RollSave()
+	// 			if saveResult.Successes() > 0 {
+	// 				continue
+	// 			}
+	// 			dmg := attack.EvalDamage()
+	// 			attack.DefenderModel.woundsTaken += dmg
+	// 		}
+	// 	}
+	// }
 }
