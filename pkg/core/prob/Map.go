@@ -18,5 +18,5 @@ func Map[T comparable, U comparable](
 		}
 		outP.Add(outP, p)
 	}
-	return NewDistributionFunc(out, cmp)
+	return NewDistFunc(out, cmp)
 }

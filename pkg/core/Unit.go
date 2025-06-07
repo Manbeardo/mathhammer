@@ -10,6 +10,7 @@ type Unit struct {
 	tpl     *UnitTemplate
 	models  []*Model
 	leaders []*Unit
+	health  UnitHealth
 }
 
 func NewUnit(tpl *UnitTemplate) *Unit {
@@ -22,11 +23,13 @@ func NewUnit(tpl *UnitTemplate) *Unit {
 		mtpl, count := e.Key, e.Value
 		for range count {
 			u.models = append(u.models, NewModel(mtpl))
+			u.health = append(u.health, mtpl.Wounds)
 		}
 	}
 
 	for i, ltpl := range tpl.Leaders {
 		u.leaders[i] = NewUnit(ltpl)
+		u.health = append(u.health, u.leaders[i].health...)
 	}
 
 	return u
@@ -42,13 +45,10 @@ func (u *Unit) Abilities() []Ability {
 
 func (u *Unit) SurvivingModels() []*Model {
 	out := []*Model{}
-	for _, m := range u.models {
-		if !m.IsDead() {
+	for i, m := range u.Models() {
+		if u.health[i] > 0 {
 			out = append(out, m)
 		}
-	}
-	for _, l := range u.leaders {
-		out = append(out, l.SurvivingModels()...)
 	}
 	return out
 }
@@ -69,8 +69,8 @@ func (u *Unit) Toughness() int64 {
 	// a unit's toughness is equal to the highest toughness
 	// among its bodyguard models
 	t := int64(0)
-	for _, m := range u.models {
-		if m.IsDead() {
+	for i, m := range u.models {
+		if u.health[i] == 0 {
 			continue
 		}
 		if m.tpl.Toughness > t {
@@ -102,23 +102,11 @@ func (u *Unit) Models() []*Model {
 	return ms
 }
 
-func (u *Unit) ModelHealth() []int64 {
-	mh := []int64{}
-	for _, m := range u.Models() {
-		mh = append(mh, m.tpl.Wounds-m.woundsTaken)
-	}
-	return mh
-}
-
 func (u *Unit) PointsLost() float64 {
 	ppm := float64(u.tpl.PointsCost) / float64(len(u.models))
 	lost := 0.0
-	for _, m := range u.models {
-		if m.IsDead() {
-			lost += ppm
-		} else {
-			lost += ppm * (float64(m.woundsTaken) / float64(m.tpl.Wounds))
-		}
+	for i, m := range u.models {
+		lost += ppm * (1.0 - (float64(u.health[i]) - float64(m.tpl.Wounds)))
 	}
 	for _, l := range u.leaders {
 		lost += l.PointsLost()
@@ -126,16 +114,14 @@ func (u *Unit) PointsLost() float64 {
 	return lost
 }
 
-func (u *Unit) ProfileTemplatesForAttack(kind AttackKind) map[*WeaponProfileTemplate]struct{} {
-	out := map[*WeaponProfileTemplate]struct{}{}
-	for _, model := range u.SurvivingModels() {
-		for _, weapon := range model.weapons {
-			if weapon.tpl.Kind != kind {
-				continue
-			}
-			for _, profile := range weapon.tpl.Profiles {
-				out[profile] = struct{}{}
-			}
+func (u *Unit) Weapons() map[*WeaponTemplate]int64 {
+	out := map[*WeaponTemplate]int64{}
+	for i, m := range u.Models() {
+		if u.health[i] == 0 {
+			continue
+		}
+		for _, w := range m.weapons {
+			out[w.tpl] += 1
 		}
 	}
 	return out
@@ -143,7 +129,7 @@ func (u *Unit) ProfileTemplatesForAttack(kind AttackKind) map[*WeaponProfileTemp
 
 type UnitTemplate struct {
 	Name       string
-	Models     []util.EntryT[*ModelTemplate, int]
+	Models     []util.Entry[*ModelTemplate, int]
 	PointsCost int
 	Leaders    []*UnitTemplate
 	Abilities  []Ability

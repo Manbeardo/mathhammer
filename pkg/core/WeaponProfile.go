@@ -18,6 +18,8 @@ func (w *WeaponProfile) Abilities() []Ability {
 }
 
 type WeaponProfileTemplate struct {
+	Name             string
+	RangeInches      int64
 	Attacks          value.Interface
 	Skill            int64
 	Strength         value.Interface

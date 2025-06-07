@@ -36,15 +36,7 @@ func (w *Weapon) MatchingProfile(tpl *WeaponProfileTemplate) *WeaponProfile {
 	return nil
 }
 
-type AttackKind string
-
-const (
-	RangedAttack AttackKind = "ranged"
-	MeleeAttack  AttackKind = "melee"
-)
-
 type WeaponTemplate struct {
 	Name     string
-	Kind     AttackKind
 	Profiles []*WeaponProfileTemplate
 }

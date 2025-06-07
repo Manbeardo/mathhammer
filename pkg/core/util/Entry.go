@@ -1,13 +1,19 @@
 package util
 
-type EntryT[T comparable, U any] struct {
+import "slices"
+
+type Entry[T comparable, U any] struct {
 	Key   T
 	Value U
 }
 
-func Entry[T comparable, U any](key T, value U) EntryT[T, U] {
-	return EntryT[T, U]{
-		Key:   key,
-		Value: value,
+func OrderedEntries[T comparable, U any](m map[T]U, fn func(T, T) int) []Entry[T, U] {
+	es := []Entry[T, U]{}
+	for k, v := range m {
+		es = append(es, Entry[T, U]{k, v})
 	}
+	slices.SortFunc(es, func(a, b Entry[T, U]) int {
+		return fn(a.Key, b.Key)
+	})
+	return es
 }

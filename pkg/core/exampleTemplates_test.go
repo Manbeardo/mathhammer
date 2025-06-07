@@ -8,26 +8,31 @@ func exampleUnitTpl_MEQ(count int) *UnitTemplate {
 	return &UnitTemplate{
 		Name:       "Marine Equivalent Squad",
 		PointsCost: 100,
-		Models: []util.EntryT[*ModelTemplate, int]{
-			util.Entry(&ModelTemplate{
-				Name:       "Jimmy Space",
-				Toughness:  4,
-				Save:       3,
-				Wounds:     2,
-				Leadership: 6,
-			}, count),
+		Models: []util.Entry[*ModelTemplate, int]{
+			{
+				Key: &ModelTemplate{
+					Name:       "Jimmy Space",
+					Toughness:  4,
+					Save:       3,
+					Wounds:     2,
+					Leadership: 6,
+				},
+				Value: count,
+			},
 		},
 	}
 }
 
-func exampleUnitTpl_MEQWithRangedWeapon(count int, wep *WeaponProfileTemplate) *UnitTemplate {
+func exampleUnitTpl_MEQWithWeaponProfile(count int, wep *WeaponProfileTemplate) *UnitTemplate {
 	tpl := exampleUnitTpl_MEQ(count)
-	tpl.Models[0].Key.Weapons = []util.EntryT[*WeaponTemplate, int]{
-		util.Entry(&WeaponTemplate{
-			Name:     "Bullet Gun",
-			Kind:     RangedAttack,
-			Profiles: []*WeaponProfileTemplate{wep},
-		}, 1),
+	tpl.Models[0].Key.Weapons = []util.Entry[*WeaponTemplate, int]{
+		{
+			Key: &WeaponTemplate{
+				Name:     "Bullet Gun",
+				Profiles: []*WeaponProfileTemplate{wep},
+			},
+			Value: 1,
+		},
 	}
 	return tpl
 }

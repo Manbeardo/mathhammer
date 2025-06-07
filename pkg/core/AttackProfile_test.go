@@ -16,57 +16,113 @@ func TestAttackProfile(t *testing.T) {
 		t.Run("applies the weapon profile the correct number of times", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(10))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            3,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(10, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    10,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			attackDist := a.attacks()
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
-				10: big.NewRat(1, 1),
-			}), attackDist)
+			assert.Equal(t, prob.NewConstDist(int64(10)), attackDist)
+		})
+
+		t.Run("0 attacks when attack is outside of weapon range", func(t *testing.T) {
+			defender := NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &WeaponProfileTemplate{
+				RangeInches:      10,
+				Attacks:          value.Int(1),
+				Skill:            3,
+				Strength:         value.Int(4),
+				ArmorPenetration: 1,
+				Damage:           1,
+			}
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 11,
+				}),
+				AttackerWeaponProfile:  wep,
+				AttackerWeaponCount:    10,
+				DefenderStartingHealth: defender.health.ToDist(),
+			}
+
+			attackDist := a.attacks()
+
+			assert.Equal(t, prob.NewConstDist(int64(0)), attackDist)
+		})
+
+		t.Run("0 attacks when using melee weapon in ranged attack", func(t *testing.T) {
+			defender := NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
+				Attacks:          value.Int(1),
+				Skill:            3,
+				Strength:         value.Int(4),
+				ArmorPenetration: 1,
+				Damage:           1,
+			}
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 0,
+				}),
+				AttackerWeaponProfile:  wep,
+				AttackerWeaponCount:    10,
+				DefenderStartingHealth: defender.health.ToDist(),
+			}
+
+			attackDist := a.attacks()
+
+			assert.Equal(t, prob.NewConstDist(int64(0)), attackDist)
 		})
 
 		t.Run("handles random values correctly", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(10))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Roll(2),
 				Skill:            0,
 				Strength:         value.Int(5),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(4, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(4, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    4,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			attackDist := a.attacks()
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				8: big.NewRat(1, 16),
 				7: big.NewRat(4, 16),
 				6: big.NewRat(6, 16),
@@ -80,23 +136,24 @@ func TestAttackProfile(t *testing.T) {
 		t.Run("calculates hits correctly for a simple example", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(10))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(3, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			hitDist := prob.Map(
@@ -105,7 +162,7 @@ func TestAttackProfile(t *testing.T) {
 				cmp.Compare,
 			)
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				3: big.NewRat(1, 8),
 				2: big.NewRat(3, 8),
 				1: big.NewRat(3, 8),
@@ -116,23 +173,24 @@ func TestAttackProfile(t *testing.T) {
 		t.Run("calculates hits correctly for a simple example with random attacks", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(10))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(3, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			hitDist := prob.Map(
@@ -141,7 +199,7 @@ func TestAttackProfile(t *testing.T) {
 				cmp.Compare,
 			)
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				2: big.NewRat(1, 8),
 				1: big.NewRat(4, 8),
 				0: big.NewRat(3, 8),
@@ -153,23 +211,24 @@ func TestAttackProfile(t *testing.T) {
 		t.Run("calculates wounds correctly for a simple example", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(10))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(3),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(3, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			woundDist := prob.Map(
@@ -178,7 +237,7 @@ func TestAttackProfile(t *testing.T) {
 				cmp.Compare,
 			)
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				3: big.NewRat(1, 27),
 				2: big.NewRat(6, 27),
 				1: big.NewRat(12, 27),
@@ -189,23 +248,24 @@ func TestAttackProfile(t *testing.T) {
 		t.Run("calculates wounds correctly for a simple example with random attacks", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(10))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(3),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(3, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			woundDist := prob.Map(
@@ -214,7 +274,7 @@ func TestAttackProfile(t *testing.T) {
 				cmp.Compare,
 			)
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				2: big.NewRat(1, 18),
 				1: big.NewRat(7, 18),
 				0: big.NewRat(10, 18),
@@ -226,32 +286,33 @@ func TestAttackProfile(t *testing.T) {
 		t.Run("calculates health correctly for a simple example", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(2))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(3),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(2, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			woundDist := prob.Map(
 				a.resolveNormalWounds(value.Int(2).Distribution()),
-				func(s ModelHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
+				func(s UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
 				cmp.Compare,
 			)
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				4: big.NewRat(1, 4),
 				3: big.NewRat(2, 4),
 				2: big.NewRat(1, 4),
@@ -259,36 +320,37 @@ func TestAttackProfile(t *testing.T) {
 		})
 	})
 
-	t.Run("Resolve", func(t *testing.T) {
+	t.Run("ResolveProfile", func(t *testing.T) {
 		t.Run("works correctly in a basic MEQ example", func(t *testing.T) {
 			defender := NewUnit(exampleUnitTpl_MEQ(2))
 			wep := &WeaponProfileTemplate{
+				RangeInches:      12,
 				Attacks:          value.Int(2),
 				Skill:            3,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(2, wep))
+			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
-			a := &AttackProfile{
-				Attack: Attack{
-					AttackerUnit:      attacker,
-					DefenderUnit:      defender,
-					DefenderToughness: defender.Toughness(),
-				},
+			a := AttackProfile{
+				Attack: NewAttack(AttackOpts{
+					AttackerUnit:   attacker,
+					DefenderUnit:   defender,
+					DistanceInches: 6,
+				}),
 				AttackerWeaponProfile:  wep,
 				AttackerWeaponCount:    2,
-				DefenderStartingHealth: defender.ModelHealth(),
+				DefenderStartingHealth: defender.health.ToDist(),
 			}
 
 			healthDist := prob.Map(
-				a.Resolve(),
-				func(s ModelHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
+				a.ResolveProfile(),
+				func(s UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
 				cmp.Compare,
 			)
 
-			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+			assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
 				0: big.NewRat(1, 1296),   // unitcrunch: <0.5%
 				1: big.NewRat(5, 324),    // unitcrunch: 1.5%
 				2: big.NewRat(25, 216),   // unitcrunch: 11.3%

@@ -21,5 +21,5 @@ func (v RollT) Distribution() prob.Dist[int64] {
 	for i := range v.N {
 		out[i+1] = big.NewRat(1, v.N)
 	}
-	return prob.NewDistribution(out)
+	return prob.NewDist(out)
 }

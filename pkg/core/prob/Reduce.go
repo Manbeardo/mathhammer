@@ -30,5 +30,5 @@ func Reduce[T comparable, U comparable](
 		}
 		prev = next
 	}
-	return NewDistributionFunc(prev, cmp)
+	return NewDistFunc(prev, cmp)
 }

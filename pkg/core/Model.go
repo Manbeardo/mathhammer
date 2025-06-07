@@ -3,9 +3,8 @@ package core
 import "github.com/Manbeardo/mathhammer/pkg/core/util"
 
 type Model struct {
-	tpl         *ModelTemplate
-	weapons     []*Weapon
-	woundsTaken int64
+	tpl     *ModelTemplate
+	weapons []*Weapon
 }
 
 func NewModel(tpl *ModelTemplate) *Model {
@@ -19,10 +18,6 @@ func NewModel(tpl *ModelTemplate) *Model {
 		}
 	}
 	return m
-}
-
-func (m *Model) IsDead() bool {
-	return m.woundsTaken >= m.tpl.Wounds
 }
 
 func (m *Model) MatchingWeaponProfiles(tpl *WeaponProfileTemplate) []*WeaponProfile {
@@ -46,6 +41,6 @@ type ModelTemplate struct {
 	Save       int64
 	Wounds     int64
 	Leadership int64
-	Weapons    []util.EntryT[*WeaponTemplate, int]
+	Weapons    []util.Entry[*WeaponTemplate, int]
 	Abilities  []Ability
 }

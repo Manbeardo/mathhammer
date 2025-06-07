@@ -14,7 +14,7 @@ func TestCalculate(t *testing.T) {
 		r := Calculate(value.Roll(6), Opts{
 			SuccessTarget: value.Int(4),
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
+		assert.Equal(t, prob.NewDistFunc(map[Outcome]*big.Rat{
 			{NormalSuccesses: 1}: big.NewRat(1, 2),
 			{NormalFailures: 1}:  big.NewRat(1, 2),
 		}, CompareOutcomes), r)
@@ -24,15 +24,13 @@ func TestCalculate(t *testing.T) {
 			SuccessTarget: value.Int(6),
 			ModifierFn:    func(i int64) int64 { return i + 5 },
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
-			{NormalSuccesses: 1}: big.NewRat(1, 1),
-		}, CompareOutcomes), r)
+		assert.Equal(t, prob.NewConstDist(Outcome{NormalSuccesses: 1}), r)
 	})
 	t.Run("2D6 7+ has a 21/36 success rate", func(t *testing.T) {
 		r := Calculate(value.Sum(value.Roll(6), value.Roll(6)), Opts{
 			SuccessTarget: value.Int(7),
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
+		assert.Equal(t, prob.NewDistFunc(map[Outcome]*big.Rat{
 			{NormalSuccesses: 1}: big.NewRat(21, 36),
 			{NormalFailures: 1}:  big.NewRat(15, 36),
 		}, CompareOutcomes), r)
@@ -44,7 +42,7 @@ func TestCalculate(t *testing.T) {
 			CriticalFailureThreshold: 1,
 			ModifierFn:               func(i int64) int64 { return i + 3 },
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
+		assert.Equal(t, prob.NewDistFunc(map[Outcome]*big.Rat{
 			{NormalSuccesses: 1}:   big.NewRat(4, 6),
 			{CriticalSuccesses: 1}: big.NewRat(1, 6),
 			{CriticalFailures: 1}:  big.NewRat(1, 6),
@@ -55,7 +53,7 @@ func TestCalculate(t *testing.T) {
 			Count:         value.Int(3),
 			SuccessTarget: value.Int(4),
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
+		assert.Equal(t, prob.NewDistFunc(map[Outcome]*big.Rat{
 			{NormalSuccesses: 3, NormalFailures: 0}: big.NewRat(1, 8),
 			{NormalSuccesses: 2, NormalFailures: 1}: big.NewRat(3, 8),
 			{NormalSuccesses: 1, NormalFailures: 2}: big.NewRat(3, 8),
@@ -68,7 +66,7 @@ func TestCalculate(t *testing.T) {
 			Count:         value.Roll(2),
 			SuccessTarget: value.Int(4),
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
+		assert.Equal(t, prob.NewDistFunc(map[Outcome]*big.Rat{
 			{NormalSuccesses: 1, NormalFailures: 0}: big.NewRat(1, 4),
 			{NormalSuccesses: 0, NormalFailures: 1}: big.NewRat(1, 4),
 			{NormalSuccesses: 2, NormalFailures: 0}: big.NewRat(1, 8),
@@ -82,7 +80,7 @@ func TestCalculate(t *testing.T) {
 			Count:         value.Int(2),
 			SuccessTarget: value.Sum(value.Roll(2), value.Int(1)),
 		})
-		assert.Equal(t, prob.NewDistributionFunc(map[Outcome]*big.Rat{
+		assert.Equal(t, prob.NewDistFunc(map[Outcome]*big.Rat{
 			{NormalSuccesses: 2, NormalFailures: 0}: big.NewRat(13, 32),
 			{NormalSuccesses: 1, NormalFailures: 1}: big.NewRat(14, 32),
 			{NormalSuccesses: 0, NormalFailures: 2}: big.NewRat(5, 32),

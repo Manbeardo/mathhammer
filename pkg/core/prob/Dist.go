@@ -19,11 +19,11 @@ type Dist[T comparable] struct {
 	outcomes []T
 }
 
-func NewDistribution[T cmp.Ordered](m map[T]*big.Rat) Dist[T] {
-	return NewDistributionFunc(m, cmp.Compare)
+func NewDist[T cmp.Ordered](m map[T]*big.Rat) Dist[T] {
+	return NewDistFunc(m, cmp.Compare)
 }
 
-func NewDistributionFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Dist[T] {
+func NewDistFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Dist[T] {
 	var psum big.Rat
 	for _, p := range m {
 		psum.Add(&psum, p)
@@ -38,6 +38,16 @@ func NewDistributionFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) Dis
 	}
 	slices.SortFunc(d.outcomes, cmp)
 	return d
+}
+
+// NewConstDist returns a distribution whose sole outcome is v
+func NewConstDist[T comparable](v T) Dist[T] {
+	return NewDistFunc(
+		map[T]*big.Rat{
+			v: big.NewRat(1, 1),
+		},
+		func(T, T) int { return 0 },
+	)
 }
 
 func (d Dist[T]) Format(w fmt.State, v rune) {
