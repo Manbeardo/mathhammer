@@ -19,17 +19,17 @@ type AbilityBearer interface {
 }
 
 type AbilityContext struct {
-	AttackTargets
+	// AttackTargets
 	Bearer AbilityBearer
 }
 
-func (ctx AbilityContext) IsAttacker() bool {
-	return ctx.Bearer == ctx.AttackerUnit ||
-		ctx.Bearer == ctx.AttackerModel ||
-		ctx.Bearer == ctx.AttackerWeaponProfile
-}
+// func (ctx AbilityContext) IsAttacker() bool {
+// 	return ctx.Bearer == ctx.AttackerUnit ||
+// 		ctx.Bearer == ctx.AttackerModel ||
+// 		ctx.Bearer == ctx.AttackerWeaponProfile
+// }
 
-func (ctx AbilityContext) IsDefender() bool {
-	return ctx.Bearer == ctx.DefenderUnit ||
-		ctx.Bearer == ctx.DefenderModel
-}
+// func (ctx AbilityContext) IsDefender() bool {
+// 	return ctx.Bearer == ctx.DefenderUnit ||
+// 		ctx.Bearer == ctx.DefenderModel
+// }

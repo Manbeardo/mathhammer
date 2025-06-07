@@ -22,6 +22,6 @@ type WeaponProfileTemplate struct {
 	Skill            int64
 	Strength         value.Interface
 	ArmorPenetration int64
-	Damage           value.Interface
+	Damage           int64
 	Abilities        []Ability
 }

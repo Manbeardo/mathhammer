@@ -5,6 +5,6 @@ type Effect interface {
 }
 
 type EffectApplyModifier struct {
-	Mod  Modifier
-	Kind ModifierKind
+	// Mod  Modifier
+	// Kind ModifierKind
 }

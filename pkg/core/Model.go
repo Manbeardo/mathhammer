@@ -1,5 +1,7 @@
 package core
 
+import "github.com/Manbeardo/mathhammer/pkg/core/util"
+
 type Model struct {
 	tpl         *ModelTemplate
 	weapons     []*Weapon
@@ -10,7 +12,8 @@ func NewModel(tpl *ModelTemplate) *Model {
 	m := &Model{
 		tpl: tpl,
 	}
-	for wtpl, count := range tpl.Weapons {
+	for _, entry := range tpl.Weapons {
+		wtpl, count := entry.Key, entry.Value
 		for range count {
 			m.weapons = append(m.weapons, NewWeapon(wtpl))
 		}
@@ -43,6 +46,6 @@ type ModelTemplate struct {
 	Save       int64
 	Wounds     int64
 	Leadership int64
-	Weapons    map[*WeaponTemplate]int64
+	Weapons    []util.EntryT[*WeaponTemplate, int]
 	Abilities  []Ability
 }

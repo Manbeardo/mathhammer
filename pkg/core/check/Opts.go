@@ -8,6 +8,7 @@ type Opts struct {
 	CriticalSuccessThreshold int64
 	CriticalFailureThreshold int64
 	ModifierFn               func(int64) int64
+	// TODO: rerolls
 }
 
 func (opts Opts) eval(v int64, target int64) Outcome {

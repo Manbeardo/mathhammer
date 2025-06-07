@@ -1,4 +1,4 @@
-package core
+package modifier
 
 import (
 	"cmp"
@@ -8,35 +8,35 @@ import (
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 )
 
-type ModifierKind string
+type Kind string
 
 const (
-	ModWeaponAttacks  ModifierKind = "c_weapon_attacks"
-	ModWeaponSkill    ModifierKind = "c_weapon_skill"
-	ModWeaponStrength ModifierKind = "c_weapon_strength"
-	ModWeaponArmorPen ModifierKind = "c_weapon_armor_penetration"
-	ModWeaponDamage   ModifierKind = "c_weapon_damage"
+	WeaponAttacks  Kind = "c_weapon_attacks"
+	WeaponSkill    Kind = "c_weapon_skill"
+	WeaponStrength Kind = "c_weapon_strength"
+	WeaponArmorPen Kind = "c_weapon_armor_penetration"
+	WeaponDamage   Kind = "c_weapon_damage"
 
-	ModWeaponRollHit   ModifierKind = "r_weapon_hit"
-	ModWeaponRollWound ModifierKind = "r_weapon_wound"
+	WeaponRollHit   Kind = "r_weapon_hit"
+	WeaponRollWound Kind = "r_weapon_wound"
 
-	ModModelToughness  ModifierKind = "c_model_toughness"
-	ModModelArmourSave ModifierKind = "c_model_armour_save"
-	ModModelLeadership ModifierKind = "c_model_leadership"
-	ModModelOC         ModifierKind = "c_model_objective_control"
+	ModelToughness  Kind = "c_model_toughness"
+	ModelArmourSave Kind = "c_model_armour_save"
+	ModelLeadership Kind = "c_model_leadership"
+	ModelOC         Kind = "c_model_objective_control"
 
-	ModModelRollSave ModifierKind = "r_model_save"
+	ModelRollSave Kind = "r_model_save"
 )
 
-type Modifier interface {
+type Interface interface {
 	Apply(float64) float64
 	Priority() int64
 }
 
-type Modifiers []Modifier
+type Set []Interface
 
-func (ms Modifiers) ApplyDist(
-	kind ModifierKind,
+func (ms Set) ApplyDist(
+	kind Kind,
 	dist prob.Dist[int64],
 ) prob.Dist[int64] {
 	return prob.Map(
@@ -48,8 +48,8 @@ func (ms Modifiers) ApplyDist(
 	)
 }
 
-func (ms Modifiers) Apply(kind ModifierKind, in int64) int64 {
-	slices.SortFunc(ms, func(a, b Modifier) int {
+func (ms Set) Apply(kind Kind, in int64) int64 {
+	slices.SortFunc(ms, func(a, b Interface) int {
 		return cmp.Compare(a.Priority(), b.Priority())
 	})
 	runningValue := 0.0
@@ -59,37 +59,37 @@ func (ms Modifiers) Apply(kind ModifierKind, in int64) int64 {
 	result := int64(math.Ceil(runningValue))
 
 	switch kind {
-	case ModWeaponRollHit, ModWeaponRollWound:
+	case WeaponRollHit, WeaponRollWound:
 		if result < in-1 {
 			result = in - 1
 		}
 		if result > in+1 {
 			result = in + 1
 		}
-	case ModModelRollSave:
+	case ModelRollSave:
 		if result > in+1 {
 			result = in + 1
 		}
-	case ModWeaponSkill, ModModelArmourSave:
+	case WeaponSkill, ModelArmourSave:
 		if result < 2 {
 			result = 2
 		}
-	case ModModelLeadership:
+	case ModelLeadership:
 		if result < 4 {
 			result = 4
 		}
 		if result > 9 {
 			result = 9
 		}
-	case ModWeaponAttacks, ModWeaponStrength, ModWeaponDamage, ModModelToughness:
+	case WeaponAttacks, WeaponStrength, WeaponDamage, ModelToughness:
 		if result < 1 {
 			result = 1
 		}
-	case ModWeaponArmorPen:
+	case WeaponArmorPen:
 		if result > 0 {
 			result = 0
 		}
-	case ModModelOC:
+	case ModelOC:
 		if result < 0 {
 			result = 0
 		}
@@ -102,6 +102,9 @@ type ReplacementModifier struct {
 	N int64
 }
 
+func Replace(n int64) ReplacementModifier {
+	return ReplacementModifier{N: n}
+}
 func (m ReplacementModifier) Apply(in float64) float64 {
 	return float64(m.N)
 }
@@ -112,6 +115,10 @@ func (m ReplacementModifier) Priority() int64 {
 
 type DivisionModifier struct {
 	N int64
+}
+
+func Divide(n int64) DivisionModifier {
+	return DivisionModifier{N: n}
 }
 
 func (m DivisionModifier) Apply(in float64) float64 {
@@ -126,6 +133,10 @@ type MultiplicationModifier struct {
 	N int64
 }
 
+func Multiply(n int64) MultiplicationModifier {
+	return MultiplicationModifier{N: n}
+}
+
 func (m MultiplicationModifier) Apply(in float64) float64 {
 	return in * float64(m.N)
 }
@@ -138,6 +149,10 @@ type AdditionModifier struct {
 	N int64
 }
 
+func Add(n int64) AdditionModifier {
+	return AdditionModifier{N: n}
+}
+
 func (m AdditionModifier) Apply(in float64) float64 {
 	return in + float64(m.N)
 }
@@ -148,6 +163,10 @@ func (m AdditionModifier) Priority() int64 {
 
 type SubtractionModifier struct {
 	N int64
+}
+
+func Subtract(n int64) SubtractionModifier {
+	return SubtractionModifier{N: n}
 }
 
 func (m SubtractionModifier) Apply(in float64) float64 {

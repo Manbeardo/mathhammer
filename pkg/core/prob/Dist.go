@@ -57,3 +57,20 @@ func (d Dist[T]) Iter() iter.Seq2[T, *big.Rat] {
 func (d Dist[T]) Distribution() Dist[T] {
 	return d
 }
+
+func (d Dist[T]) Percentile(p *big.Rat) T {
+	// d.outcomes is already sorted, so we just pick the first
+	// value whose cumulative probability is >= p
+	sum := big.NewRat(0, 1)
+	for _, t := range d.outcomes {
+		sum = sum.Add(sum, d.m[t])
+		if sum.Cmp(p) >= 0 {
+			return t
+		}
+	}
+	return d.outcomes[len(d.outcomes)-1]
+}
+
+func (d Dist[T]) Median() T {
+	return d.Percentile(big.NewRat(1, 2))
+}
