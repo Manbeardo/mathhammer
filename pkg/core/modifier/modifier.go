@@ -52,7 +52,7 @@ func (ms Set) Apply(kind Kind, in int64) int64 {
 	slices.SortFunc(ms, func(a, b Interface) int {
 		return cmp.Compare(a.Priority(), b.Priority())
 	})
-	runningValue := 0.0
+	runningValue := float64(in)
 	for _, m := range ms {
 		runningValue = m.Apply(runningValue)
 	}

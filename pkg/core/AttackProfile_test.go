@@ -221,4 +221,80 @@ func TestAttackProfile(t *testing.T) {
 			}), woundDist)
 		})
 	})
+
+	t.Run("resolveNormalWounds", func(t *testing.T) {
+		t.Run("calculates health correctly for a simple example", func(t *testing.T) {
+			defender := NewUnit(exampleUnitTpl_MEQ(2))
+			wep := &WeaponProfileTemplate{
+				Attacks:          value.Int(1),
+				Skill:            4,
+				Strength:         value.Int(3),
+				ArmorPenetration: 1,
+				Damage:           1,
+			}
+			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(2, wep))
+
+			a := &AttackProfile{
+				Attack: Attack{
+					AttackerUnit:      attacker,
+					DefenderUnit:      defender,
+					DefenderToughness: defender.Toughness(),
+				},
+				AttackerWeaponProfile:  wep,
+				AttackerWeaponCount:    3,
+				DefenderStartingHealth: defender.ModelHealth(),
+			}
+
+			woundDist := prob.Map(
+				a.resolveNormalWounds(value.Int(2).Distribution()),
+				func(s ModelHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
+				cmp.Compare,
+			)
+
+			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+				4: big.NewRat(1, 4),
+				3: big.NewRat(2, 4),
+				2: big.NewRat(1, 4),
+			}), woundDist)
+		})
+	})
+
+	t.Run("Resolve", func(t *testing.T) {
+		t.Run("works correctly in a basic MEQ example", func(t *testing.T) {
+			defender := NewUnit(exampleUnitTpl_MEQ(2))
+			wep := &WeaponProfileTemplate{
+				Attacks:          value.Int(2),
+				Skill:            3,
+				Strength:         value.Int(4),
+				ArmorPenetration: 1,
+				Damage:           1,
+			}
+			attacker := NewUnit(exampleUnitTpl_MEQWithRangedWeapon(2, wep))
+
+			a := &AttackProfile{
+				Attack: Attack{
+					AttackerUnit:      attacker,
+					DefenderUnit:      defender,
+					DefenderToughness: defender.Toughness(),
+				},
+				AttackerWeaponProfile:  wep,
+				AttackerWeaponCount:    2,
+				DefenderStartingHealth: defender.ModelHealth(),
+			}
+
+			healthDist := prob.Map(
+				a.Resolve(),
+				func(s ModelHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
+				cmp.Compare,
+			)
+
+			assert.Equal(t, prob.NewDistribution(map[int64]*big.Rat{
+				0: big.NewRat(1, 1296),   // unitcrunch: <0.5%
+				1: big.NewRat(5, 324),    // unitcrunch: 1.5%
+				2: big.NewRat(25, 216),   // unitcrunch: 11.3%
+				3: big.NewRat(125, 324),  // unitcrunch: 38.2%
+				4: big.NewRat(625, 1296), // unitcrunch: 49%
+			}), healthDist)
+		})
+	})
 }

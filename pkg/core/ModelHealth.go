@@ -5,17 +5,41 @@ import (
 	"fmt"
 )
 
-type ModelHealthStr string
+type ModelHealth []int64
 
-func EncodeModelHealth(modelHealth []int64) ModelHealthStr {
-	b, err := json.Marshal(modelHealth)
+func (mh ModelHealth) WoundsRemaining() int64 {
+	sum := int64(0)
+	for _, h := range mh {
+		sum += h
+	}
+	return sum
+}
+
+func (mh ModelHealth) ModelsRemaining() int64 {
+	sum := int64(0)
+	for _, h := range mh {
+		if h > 0 {
+			sum += 1
+		}
+	}
+	return sum
+}
+
+func (mh ModelHealth) ToKey() ModelHealthStr {
+	b, err := json.Marshal(mh)
 	if err != nil {
 		panic(fmt.Errorf("marshaling ModelHealth: %w", err))
 	}
 	return ModelHealthStr(b)
 }
 
-func (mh ModelHealthStr) ToSlice() []int64 {
+func (mh ModelHealth) String() string {
+	return string(mh.ToKey())
+}
+
+type ModelHealthStr string
+
+func (mh ModelHealthStr) ToSlice() ModelHealth {
 	out := []int64{}
 	err := json.Unmarshal([]byte(mh), &out)
 	if err != nil {

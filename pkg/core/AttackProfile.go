@@ -15,7 +15,7 @@ type AttackProfile struct {
 	Attack
 	AttackerWeaponProfile  *WeaponProfileTemplate
 	AttackerWeaponCount    int64
-	DefenderStartingHealth []int64
+	DefenderStartingHealth ModelHealth
 }
 
 func (a *AttackProfile) attacks() prob.Dist[int64] {
@@ -86,7 +86,7 @@ func (a *AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dis
 		woundDist,
 		func(wounds int64) prob.Dist[ModelHealthStr] {
 			healthDist := prob.NewDistribution(map[ModelHealthStr]*big.Rat{
-				(EncodeModelHealth(a.DefenderStartingHealth)): big.NewRat(1, 1),
+				(a.DefenderStartingHealth.ToKey()): big.NewRat(1, 1),
 			})
 			for range wounds {
 				// TODO: memoize this
@@ -116,7 +116,7 @@ func (a *AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dis
 										healthSliceCopy[idx] -= damage
 									}
 								}
-								return EncodeModelHealth(healthSliceCopy)
+								return healthSliceCopy.ToKey()
 							},
 							cmp.Compare,
 						)
