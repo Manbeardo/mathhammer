@@ -42,5 +42,5 @@ func Reduce[T any, U any](
 		out.pmap = nextPmap
 		out.vmap = nextVmap
 	}
-	return out.finalize()
+	return out.validate()
 }

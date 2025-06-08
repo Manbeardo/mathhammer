@@ -33,5 +33,5 @@ func FlatMap[T any, U any](
 		}
 	}
 
-	return out.finalize()
+	return out.validate()
 }

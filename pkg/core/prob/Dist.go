@@ -23,9 +23,10 @@ type keyFuncKind int
 type Key string
 
 const (
-	keyFuncInvalid keyFuncKind = iota
+	keyFuncInvalidFirst keyFuncKind = iota // invalid value bounding the start of the valid range
 	keyFuncInterface
 	keyFuncComparable
+	keyFuncInvalidLast // invalid value bounding the end of the valid range
 )
 
 // a discrete probability distribution
@@ -64,7 +65,7 @@ func FromEntries[T any](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
 		d.pmap[k] = p
 	}
 
-	return d.finalize()
+	return d.validate()
 }
 
 func FromMap[T comparable](m map[T]*big.Rat) (Dist[T], error) {
@@ -88,11 +89,16 @@ func keyFuncKindFor[T any]() (keyFuncKind, error) {
 	if t.Comparable() {
 		return keyFuncComparable, nil
 	}
-	return keyFuncInvalid, fmt.Errorf("%s does not satisfy comparable or StringKeyer", t.String())
+	return keyFuncInvalidFirst, fmt.Errorf("%s does not satisfy comparable or StringKeyer", t.String())
 }
 
-func (d Dist[T]) finalize() (Dist[T], error) {
+func (d Dist[T]) validate() (Dist[T], error) {
 	var psum big.Rat
+
+	if d.keyFuncKind <= keyFuncInvalidFirst || d.keyFuncKind >= keyFuncInvalidLast {
+		return d, fmt.Errorf("invalid keyFuncKind: %d", d.keyFuncKind)
+	}
+
 	for _, p := range d.pmap {
 		psum.Add(&psum, p)
 	}

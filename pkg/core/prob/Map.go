@@ -23,5 +23,5 @@ func Map[T any, U any](
 		}
 		outP.Add(outP, p)
 	}
-	return out.finalize()
+	return out.validate()
 }
