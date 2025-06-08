@@ -25,7 +25,7 @@ func TestCalculate(t *testing.T) {
 			SuccessTarget: value.Int(6),
 			ModifierFn:    func(i int64) int64 { return i + 5 },
 		})
-		assert.Equal(t, util.Must(prob.NewConstDist(Outcome{NormalSuccesses: 1})), r)
+		assert.Equal(t, util.Must(prob.FromConst(Outcome{NormalSuccesses: 1})), r)
 	})
 	t.Run("2D6 7+ has a 21/36 success rate", func(t *testing.T) {
 		r := Calculate(value.Sum(value.Roll(6), value.Roll(6)), Opts{

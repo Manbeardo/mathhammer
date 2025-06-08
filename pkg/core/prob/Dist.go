@@ -47,11 +47,11 @@ func empty[T any]() (Dist[T], error) {
 	}, nil
 }
 
-func NewDist[T cmp.Ordered](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
-	return NewDistFunc(m, cmp.Compare)
+func FromEntries[T cmp.Ordered](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
+	return FromEntriesFunc(m, cmp.Compare)
 }
 
-func NewDistFunc[T any](m []util.Entry[T, *big.Rat], cmp func(T, T) int) (Dist[T], error) {
+func FromEntriesFunc[T any](m []util.Entry[T, *big.Rat], cmp func(T, T) int) (Dist[T], error) {
 	d, err := empty[T]()
 	if err != nil {
 		return d, err
@@ -75,12 +75,12 @@ func FromMap[T cmp.Ordered](m map[T]*big.Rat) (Dist[T], error) {
 }
 
 func FromMapFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) (Dist[T], error) {
-	return NewDistFunc(util.OrderedEntries(m, cmp), cmp)
+	return FromEntriesFunc(util.OrderedEntries(m, cmp), cmp)
 }
 
-// NewConstDist returns a distribution whose sole outcome is v
-func NewConstDist[T any](v T) (Dist[T], error) {
-	return NewDistFunc(
+// FromConst returns a distribution whose sole outcome is v
+func FromConst[T any](v T) (Dist[T], error) {
+	return FromEntriesFunc(
 		[]util.Entry[T, *big.Rat]{
 			{Key: v, Value: big.NewRat(1, 1)},
 		},

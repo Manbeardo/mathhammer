@@ -100,7 +100,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 						healthSlice := healthStr.ToSlice()
 						model, idx := a.allocateWound(healthSlice)
 						if model == nil {
-							return util.Must(prob.NewConstDist(healthStr))
+							return util.Must(prob.FromConst(healthStr))
 						}
 
 						save := saveModifiers.Apply(modifier.ModelArmourSave, model.Save())

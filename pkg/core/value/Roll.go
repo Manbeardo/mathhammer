@@ -24,5 +24,5 @@ func (v RollT) Distribution() prob.Dist[int64] {
 			Key: i + 1, Value: big.NewRat(1, v.N),
 		})
 	}
-	return util.Must(prob.NewDist(out))
+	return util.Must(prob.FromEntries(out))
 }

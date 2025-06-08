@@ -40,7 +40,7 @@ func TestProfile(t *testing.T) {
 
 			attackDist := a.attacks()
 
-			assert.Equal(t, util.Must(prob.NewConstDist(int64(10))), attackDist)
+			assert.Equal(t, util.Must(prob.FromConst(int64(10))), attackDist)
 		})
 
 		t.Run("0 attacks when attack is outside of weapon range", func(t *testing.T) {
@@ -68,7 +68,7 @@ func TestProfile(t *testing.T) {
 
 			attackDist := a.attacks()
 
-			assert.Equal(t, util.Must(prob.NewConstDist(int64(0))), attackDist)
+			assert.Equal(t, util.Must(prob.FromConst(int64(0))), attackDist)
 		})
 
 		t.Run("0 attacks when using melee weapon in ranged attack", func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestProfile(t *testing.T) {
 
 			attackDist := a.attacks()
 
-			assert.Equal(t, util.Must(prob.NewConstDist(int64(0))), attackDist)
+			assert.Equal(t, util.Must(prob.FromConst(int64(0))), attackDist)
 		})
 
 		t.Run("handles random values correctly", func(t *testing.T) {

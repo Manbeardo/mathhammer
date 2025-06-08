@@ -42,7 +42,7 @@ func (mh UnitHealth) ToKey() UnitHealthStr {
 }
 
 func (mh UnitHealth) ToDist() prob.Dist[UnitHealthStr] {
-	return util.Must(prob.NewConstDist(mh.ToKey()))
+	return util.Must(prob.FromConst(mh.ToKey()))
 }
 
 func (mh UnitHealth) String() string {

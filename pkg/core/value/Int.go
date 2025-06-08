@@ -16,5 +16,5 @@ func Int(n int64) IntT {
 var _ Interface = (*IntT)(nil)
 
 func (v IntT) Distribution() prob.Dist[int64] {
-	return util.Must(prob.NewConstDist(v.N))
+	return util.Must(prob.FromConst(v.N))
 }

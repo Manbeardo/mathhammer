@@ -14,7 +14,7 @@ func Reduce[T any, U any](
 	cmp func(U, U) int,
 	initialValue U,
 ) (Dist[U], error) {
-	out, err := NewDistFunc([]util.Entry[U, *big.Rat]{
+	out, err := FromEntriesFunc([]util.Entry[U, *big.Rat]{
 		{Key: initialValue, Value: big.NewRat(1, 1)},
 	}, cmp)
 	if err != nil {
