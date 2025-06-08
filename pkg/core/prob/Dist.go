@@ -3,13 +3,13 @@
 package prob
 
 import (
+	"cmp"
 	"fmt"
 	"iter"
 	"maps"
 	"math/big"
 	"reflect"
 	"slices"
-	"strings"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
@@ -17,6 +17,9 @@ import (
 type StringKeyer interface {
 	StringKey() string
 }
+
+type MapT[T comparable] = map[T]*big.Rat
+type EntryT[T any] = util.Entry[T, *big.Rat]
 
 type keyFuncKind int
 
@@ -49,7 +52,7 @@ func empty[T any]() (Dist[T], error) {
 	}, nil
 }
 
-func FromEntries[T any](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
+func FromEntries[T any](m []EntryT[T]) (Dist[T], error) {
 	d, err := empty[T]()
 	if err != nil {
 		return d, err
@@ -68,14 +71,14 @@ func FromEntries[T any](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
 	return d.validate()
 }
 
-func FromMap[T comparable](m map[T]*big.Rat) (Dist[T], error) {
+func FromMap[T comparable](m MapT[T]) (Dist[T], error) {
 	return FromEntries(util.Entries(m))
 }
 
 // FromConst returns a distribution whose sole outcome is v
 func FromConst[T any](v T) (Dist[T], error) {
 	return FromEntries(
-		[]util.Entry[T, *big.Rat]{
+		[]EntryT[T]{
 			{Key: v, Value: big.NewRat(1, 1)},
 		},
 	)
@@ -121,10 +124,37 @@ func (d Dist[T]) key(v any) Key {
 	}
 }
 
+func (d Dist[T]) vmapComparator() Comparator[util.Entry[Key, T]] {
+	if d.keyFuncKind == keyFuncComparable {
+		vcmp := unsafeComparatorFor[T]()
+		if vcmp != nil {
+			return func(a, b util.Entry[Key, T]) int {
+				return vcmp(a.Value, b.Value)
+			}
+		}
+	}
+	return func(a, b util.Entry[Key, T]) int {
+		return cmp.Compare(a.Key, b.Key)
+	}
+}
+
 func (d Dist[T]) Keys() []Key {
-	keys := slices.Collect(maps.Keys(d.pmap))
-	slices.Sort(keys)
+	entries := util.Entries(d.vmap)
+	slices.SortFunc(entries, d.vmapComparator())
+	keys := []Key{}
+	for _, e := range entries {
+		keys = append(keys, e.Key)
+	}
 	return keys
+}
+
+func (d Dist[T]) Lookup(k Key) (EntryT[T], bool) {
+	p, ok := d.pmap[k]
+	if !ok {
+		return EntryT[T]{}, false
+	}
+	v := d.vmap[k]
+	return EntryT[T]{Key: v, Value: p}, true
 }
 
 func (d Dist[T]) Format(w fmt.State, v rune) {
@@ -145,14 +175,15 @@ func (d Dist[T]) Distribution() Dist[T] {
 	return d
 }
 
-func (d Dist[T]) Percentile(p *big.Rat, cmp func(T, T) int) T {
+func (d Dist[T]) Percentile(p float64, cmp func(T, T) int) T {
 	values := slices.Collect(maps.Values(d.vmap))
 	slices.SortFunc(values, cmp)
 
 	sum := big.NewRat(0, 1)
 	for _, v := range values {
 		sum = sum.Add(sum, d.pmap[d.key(v)])
-		if sum.Cmp(p) >= 0 {
+		sumf, _ := sum.Float64()
+		if sumf > p {
 			return v
 		}
 	}
@@ -160,22 +191,11 @@ func (d Dist[T]) Percentile(p *big.Rat, cmp func(T, T) int) T {
 }
 
 func (d Dist[T]) Median(cmp func(T, T) int) T {
-	return d.Percentile(big.NewRat(1, 2), cmp)
+	return d.Percentile(0.5, cmp)
 }
 
 func (d Dist[T]) StringKey() string {
-	keys := slices.Collect(maps.Keys(d.pmap))
-	slices.Sort(keys)
-
-	b := strings.Builder{}
-	b.WriteString("{")
-	for i, k := range keys {
-		if i > 0 {
-			b.WriteString(", ")
-		}
-		p := d.pmap[k]
-		fmt.Fprintf(&b, "%s: %s", k, p.RatString())
-	}
-	b.WriteString("}")
-	return b.String()
+	// vmap and keyFuncKind are implementation details that don't matter
+	// for equality checks when the value type's key function works correctly
+	return fmt.Sprintf("%#v", util.PrettyMap[Key, *big.Rat](d.pmap))
 }

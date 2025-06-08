@@ -30,6 +30,12 @@ func (bs *bufferedState) String() string {
 	return bs.buf.String()
 }
 
+type PrettyMap[T comparable, U any] map[T]U
+
+func (pm PrettyMap[T, U]) Format(w fmt.State, v rune) {
+	PrettyFormat(w, v, pm)
+}
+
 func PrettyFormat(w fmt.State, v rune, i any) {
 	r := reflect.ValueOf(i)
 	for r.Kind() == reflect.Pointer {
@@ -72,17 +78,27 @@ func prettyFormatMap(w fmt.State, v rune, r reflect.Value) {
 		return cmp.Compare(keyStrings[a], keyStrings[b])
 	})
 	if w.Flag('#') {
-		io.WriteString(w, r.Type().String())
+		fmt.Fprintf(w, "%s{", r.Type().String())
+	} else {
+		io.WriteString(w, "map[")
 	}
-	io.WriteString(w, "{")
 	for i, key := range keys {
 		if i > 0 {
-			io.WriteString(w, ", ")
+			if w.Flag('#') {
+				io.WriteString(w, ", ")
+			} else {
+				io.WriteString(w, " ")
+			}
 		}
 		fmt.Fprintf(w, "%s:", keyStrings[key])
 		PrettyFormat(w, v, r.MapIndex(key).Interface())
 	}
-	io.WriteString(w, "}")
+	if w.Flag('#') {
+		io.WriteString(w, "}")
+	} else {
+		io.WriteString(w, "]")
+	}
+
 }
 
 func prettyFormatStruct(w fmt.State, v rune, r reflect.Value) {
@@ -107,9 +123,15 @@ func prettyFormatStruct(w fmt.State, v rune, r reflect.Value) {
 		io.WriteString(w, "{")
 		for j := range r.Type().NumField() {
 			if j > 0 {
-				io.WriteString(w, ", ")
+				if w.Flag('#') {
+					io.WriteString(w, ", ")
+				} else {
+					io.WriteString(w, " ")
+				}
 			}
-			fmt.Fprintf(w, "%s:", r.Type().Field(j).Name)
+			if w.Flag('#') {
+				fmt.Fprintf(w, "%s:", r.Type().Field(j).Name)
+			}
 			rf := forceGetField(r, j)
 			PrettyFormat(w, v, rf.Interface())
 		}
