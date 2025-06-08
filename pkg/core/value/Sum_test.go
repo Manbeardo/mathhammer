@@ -16,7 +16,7 @@ func TestSum(t *testing.T) {
 			RollT{N: 6},
 		}
 		dist := v.Distribution()
-		assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+		assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 			2:  big.NewRat(1, 36),
 			3:  big.NewRat(2, 36),
 			4:  big.NewRat(3, 36),

@@ -18,9 +18,9 @@ func Roll(n int64) RollT {
 var _ Interface = (*RollT)(nil)
 
 func (v RollT) Distribution() prob.Dist[int64] {
-	out := []util.Entry[int64, *big.Rat]{}
+	out := []prob.EntryT[int64]{}
 	for i := range v.N {
-		out = append(out, util.Entry[int64, *big.Rat]{
+		out = append(out, prob.EntryT[int64]{
 			Key: i + 1, Value: big.NewRat(1, v.N),
 		})
 	}

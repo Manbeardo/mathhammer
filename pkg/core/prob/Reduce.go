@@ -2,8 +2,6 @@ package prob
 
 import (
 	"math/big"
-
-	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
 // reduces probability distributions of multiple independent events into an aggregate
@@ -13,7 +11,7 @@ func Reduce[T any, U any](
 	collector func(U, T) U,
 	initialValue U,
 ) (Dist[U], error) {
-	out, err := FromEntries([]util.Entry[U, *big.Rat]{
+	out, err := FromEntries([]EntryT[U]{
 		{Key: initialValue, Value: big.NewRat(1, 1)},
 	})
 	if err != nil {

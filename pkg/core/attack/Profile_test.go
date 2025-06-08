@@ -123,7 +123,7 @@ func TestProfile(t *testing.T) {
 
 			attackDist := a.attacks()
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				8: big.NewRat(1, 16),
 				7: big.NewRat(4, 16),
 				6: big.NewRat(6, 16),
@@ -162,7 +162,7 @@ func TestProfile(t *testing.T) {
 				func(o check.Outcome) int64 { return o.Successes() },
 			))
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				3: big.NewRat(1, 8),
 				2: big.NewRat(3, 8),
 				1: big.NewRat(3, 8),
@@ -198,7 +198,7 @@ func TestProfile(t *testing.T) {
 				func(o check.Outcome) int64 { return o.Successes() },
 			))
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				2: big.NewRat(1, 8),
 				1: big.NewRat(4, 8),
 				0: big.NewRat(3, 8),
@@ -235,7 +235,7 @@ func TestProfile(t *testing.T) {
 				func(o check.Outcome) int64 { return o.Successes() },
 			))
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				3: big.NewRat(1, 27),
 				2: big.NewRat(6, 27),
 				1: big.NewRat(12, 27),
@@ -271,7 +271,7 @@ func TestProfile(t *testing.T) {
 				func(o check.Outcome) int64 { return o.Successes() },
 			))
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				2: big.NewRat(1, 18),
 				1: big.NewRat(7, 18),
 				0: big.NewRat(10, 18),
@@ -308,7 +308,7 @@ func TestProfile(t *testing.T) {
 				func(s core.UnitHealth) int64 { return s.WoundsRemaining() },
 			))
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				4: big.NewRat(1, 4),
 				3: big.NewRat(2, 4),
 				2: big.NewRat(1, 4),
@@ -345,7 +345,7 @@ func TestProfile(t *testing.T) {
 				func(s core.UnitHealth) int64 { return s.WoundsRemaining() },
 			))
 
-			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
+			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
 				0: big.NewRat(1, 1296),   // unitcrunch: <0.5%
 				1: big.NewRat(5, 324),    // unitcrunch: 1.5%
 				2: big.NewRat(25, 216),   // unitcrunch: 11.3%

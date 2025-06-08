@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Manbeardo/mathhammer/pkg/core/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +34,7 @@ func keysSortingTestCase[V cmp.Ordered](t *testing.T, values []V) {
 	t.Run(fmt.Sprintf("correctly sorts %s keys", reflect.TypeFor[V]().String()), func(t *testing.T) {
 		entries := []EntryT[V]{}
 		for _, v := range values {
-			entries = append(entries, util.Entry[V, *big.Rat]{
+			entries = append(entries, EntryT[V]{
 				Key: v, Value: big.NewRat(1, int64(len(values))),
 			})
 		}
@@ -98,7 +97,7 @@ func TestDist(t *testing.T) {
 
 			entries := []EntryT[ExampleInt]{}
 			for v, p := range d.Iter() {
-				entries = append(entries, util.Entry[ExampleInt, *big.Rat]{Key: v, Value: p})
+				entries = append(entries, EntryT[ExampleInt]{Key: v, Value: p})
 			}
 
 			assert.Equal(t,
@@ -235,7 +234,7 @@ func TestDist(t *testing.T) {
 
 func TestFromEntries(t *testing.T) {
 	t.Run("returns an error if the probabilities don't sum to 1", func(t *testing.T) {
-		_, err := FromEntries([]util.Entry[string, *big.Rat]{
+		_, err := FromEntries([]EntryT[string]{
 			{Key: "foo", Value: big.NewRat(1, 3)},
 			{Key: "bar", Value: big.NewRat(1, 3)},
 		})
@@ -243,7 +242,7 @@ func TestFromEntries(t *testing.T) {
 	})
 
 	t.Run("returns an error for an invalid value type", func(t *testing.T) {
-		_, err := FromEntries([]util.Entry[[]string, *big.Rat]{
+		_, err := FromEntries([]EntryT[[]string]{
 			{Key: []string{"foo"}, Value: big.NewRat(1, 2)},
 			{Key: []string{"bar"}, Value: big.NewRat(1, 2)},
 		})
@@ -251,7 +250,7 @@ func TestFromEntries(t *testing.T) {
 	})
 
 	t.Run("returns an error when given duplicate keys", func(t *testing.T) {
-		_, err := FromEntries([]util.Entry[string, *big.Rat]{
+		_, err := FromEntries([]EntryT[string]{
 			{Key: "foo", Value: big.NewRat(1, 2)},
 			{Key: "foo", Value: big.NewRat(1, 2)},
 		})

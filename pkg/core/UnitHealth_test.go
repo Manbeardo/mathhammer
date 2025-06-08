@@ -12,7 +12,7 @@ import (
 func TestMeanWoundsRemaining(t *testing.T) {
 	t.Run("weights results correctly", func(t *testing.T) {
 		dist := util.Must(prob.FromEntries(
-			[]util.Entry[UnitHealth, *big.Rat]{
+			[]prob.EntryT[UnitHealth]{
 				{Key: UnitHealth{0, 10}, Value: big.NewRat(1, 3)},
 				{Key: UnitHealth{2, 3}, Value: big.NewRat(2, 3)},
 			},
