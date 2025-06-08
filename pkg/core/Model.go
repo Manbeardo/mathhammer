@@ -3,36 +3,15 @@ package core
 import "github.com/Manbeardo/mathhammer/pkg/core/util"
 
 type Model struct {
-	tpl     *ModelTemplate
-	weapons []*Weapon
+	tpl    *ModelTemplate
+	points float64
 }
 
-func NewModel(tpl *ModelTemplate) *Model {
-	m := &Model{
-		tpl: tpl,
+func NewModel(unit *UnitTemplate, model *ModelTemplate) *Model {
+	return &Model{
+		tpl:    model,
+		points: float64(unit.PointsCost) / float64(unit.CoreModelCount()),
 	}
-	for _, entry := range tpl.Weapons {
-		wtpl, count := entry.Key, entry.Value
-		for range count {
-			m.weapons = append(m.weapons, NewWeapon(wtpl))
-		}
-	}
-	return m
-}
-
-func (m *Model) MatchingWeaponProfiles(tpl *WeaponProfileTemplate) []*WeaponProfile {
-	out := []*WeaponProfile{}
-	for _, weapon := range m.weapons {
-		p := weapon.MatchingProfile(tpl)
-		if p != nil {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-func (m *Model) Abilities() []Ability {
-	return m.tpl.Abilities
 }
 
 type ModelTemplate struct {

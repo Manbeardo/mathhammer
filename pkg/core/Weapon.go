@@ -1,42 +1,22 @@
 package core
 
-type Weapon struct {
-	tpl      *WeaponTemplate
-	profiles []*WeaponProfile
-}
-
-func NewWeapon(tpl *WeaponTemplate) *Weapon {
-	w := &Weapon{
-		tpl:      tpl,
-		profiles: make([]*WeaponProfile, len(tpl.Profiles)),
-	}
-
-	for i, ptpl := range tpl.Profiles {
-		w.profiles[i] = NewWeaponProfile(ptpl)
-	}
-
-	return w
-}
-
-func (w *Weapon) WasActivated() bool {
-	for _, p := range w.profiles {
-		if p.wasActivated {
-			return true
-		}
-	}
-	return false
-}
-
-func (w *Weapon) MatchingProfile(tpl *WeaponProfileTemplate) *WeaponProfile {
-	for _, p := range w.profiles {
-		if p.tpl == tpl {
-			return p
-		}
-	}
-	return nil
-}
-
 type WeaponTemplate struct {
 	Name     string
 	Profiles []*WeaponProfileTemplate
+}
+
+func (wtpl *WeaponTemplate) AvailableCount(unit *Unit, health UnitHealth) int64 {
+	sum := 0
+	for i, m := range unit.models {
+		if health[i] == 0 {
+			continue
+		}
+		for _, e := range m.tpl.Weapons {
+			tpl, count := e.Key, e.Value
+			if tpl == wtpl {
+				sum += count
+			}
+		}
+	}
+	return int64(sum)
 }

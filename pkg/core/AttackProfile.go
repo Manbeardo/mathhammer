@@ -13,9 +13,9 @@ import (
 
 type AttackProfile struct {
 	Attack
-	AttackerWeaponProfile  *WeaponProfileTemplate
-	AttackerWeaponCount    int64
-	DefenderStartingHealth prob.Dist[UnitHealthStr]
+	AttackerWeaponProfile *WeaponProfileTemplate
+	AttackerWeaponCount   int64
+	DefenderHealth        prob.Dist[UnitHealthStr]
 }
 
 func (a AttackProfile) attacks() prob.Dist[int64] {
@@ -90,7 +90,7 @@ func (a AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist
 	return util.Must(prob.FlatMap(
 		woundDist,
 		func(wounds int64) prob.Dist[UnitHealthStr] {
-			healthDist := a.DefenderStartingHealth
+			healthDist := a.DefenderHealth
 			for range wounds {
 				// TODO: memoize this
 				healthDist = util.Must(prob.FlatMap(

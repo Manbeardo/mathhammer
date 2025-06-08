@@ -7,124 +7,100 @@ import (
 )
 
 type Unit struct {
-	tpl     *UnitTemplate
-	models  []*Model
-	leaders []*Unit
-	health  UnitHealth
+	tpl             *UnitTemplate
+	models          []*Model
+	weaponTemplates []*WeaponTemplate
+	leaders         []*Unit
+	startingHealth  UnitHealth
 }
 
 func NewUnit(tpl *UnitTemplate) *Unit {
 	u := &Unit{
-		tpl:     tpl,
-		leaders: make([]*Unit, len(tpl.Leaders)),
+		tpl: tpl,
 	}
 
-	for _, e := range tpl.Models {
-		mtpl, count := e.Key, e.Value
-		for range count {
-			u.models = append(u.models, NewModel(mtpl))
-			u.health = append(u.health, mtpl.Wounds)
+	foundWeapons := map[*WeaponTemplate]struct{}{}
+
+	for _, ltpl := range tpl.Leaders {
+		u.leaders = append(u.leaders, NewUnit(ltpl))
+	}
+
+	unitTemplates := []*UnitTemplate{tpl}
+	unitTemplates = append(unitTemplates, tpl.Leaders...)
+
+	for _, utpl := range unitTemplates {
+		for _, e := range utpl.Models {
+			mtpl, count := e.Key, e.Value
+			for range count {
+				u.models = append(u.models, NewModel(utpl, mtpl))
+				u.startingHealth = append(u.startingHealth, mtpl.Wounds)
+			}
+			for _, e := range mtpl.Weapons {
+				wtpl := e.Key
+				if _, exists := foundWeapons[wtpl]; !exists {
+					u.weaponTemplates = append(u.weaponTemplates, wtpl)
+					foundWeapons[wtpl] = struct{}{}
+				}
+			}
 		}
 	}
 
-	for i, ltpl := range tpl.Leaders {
-		u.leaders[i] = NewUnit(ltpl)
-		u.health = append(u.health, u.leaders[i].health...)
-	}
-
 	return u
-}
-
-func (u *Unit) IsDead() bool {
-	return len(u.SurvivingModels()) == 0
 }
 
 func (u *Unit) Abilities() []Ability {
 	return u.tpl.Abilities
 }
 
-func (u *Unit) SurvivingModels() []*Model {
-	out := []*Model{}
-	for i, m := range u.Models() {
-		if u.health[i] > 0 {
-			out = append(out, m)
-		}
-	}
-	return out
-}
-
-func (u *Unit) ModelCount() int {
-	return u.tpl.ModelCount()
-}
-
-func (u *Unit) PointsCost() int {
-	p := u.tpl.PointsCost
-	for _, l := range u.leaders {
-		p += l.PointsCost()
-	}
-	return p
-}
-
-func (u *Unit) Toughness() int64 {
+func (u *Unit) Toughness(health UnitHealth) int64 {
 	// a unit's toughness is equal to the highest toughness
 	// among its bodyguard models
 	t := int64(0)
-	for i, m := range u.models {
-		if u.health[i] == 0 {
+	for i := range u.tpl.CoreModelCount() {
+		if health[i] == 0 {
 			continue
 		}
-		if m.tpl.Toughness > t {
-			t = m.tpl.Toughness
+		mtpl := u.models[i].tpl
+		if mtpl.Toughness > t {
+			t = mtpl.Toughness
 		}
 	}
 	return t
 }
 
-func (u *Unit) Model(idx int) *Model {
-	if idx < len(u.models) {
-		return u.models[idx]
-	}
-	idx -= len(u.models)
-	for _, leader := range u.leaders {
-		if idx < len(leader.models) {
-			return leader.models[idx]
-		}
-		idx -= len(leader.models)
-	}
-	return nil
+func (u *Unit) StartingHealth() UnitHealth {
+	return slices.Clone(u.startingHealth)
+}
+
+func (u *Unit) Model(i int) *Model {
+	return u.models[i]
 }
 
 func (u *Unit) Models() []*Model {
-	ms := slices.Clone(u.models)
-	for _, l := range u.leaders {
-		ms = append(ms, l.Models()...)
-	}
-	return ms
+	return slices.Clone(u.models)
 }
 
-func (u *Unit) PointsLost() float64 {
-	ppm := float64(u.tpl.PointsCost) / float64(len(u.models))
-	lost := 0.0
+func (u *Unit) SurvivingModels(health UnitHealth) []*ModelTemplate {
+	out := []*ModelTemplate{}
 	for i, m := range u.models {
-		lost += ppm * (1.0 - (float64(u.health[i]) - float64(m.tpl.Wounds)))
-	}
-	for _, l := range u.leaders {
-		lost += l.PointsLost()
-	}
-	return lost
-}
-
-func (u *Unit) Weapons() map[*WeaponTemplate]int64 {
-	out := map[*WeaponTemplate]int64{}
-	for i, m := range u.Models() {
-		if u.health[i] == 0 {
-			continue
-		}
-		for _, w := range m.weapons {
-			out[w.tpl] += 1
+		if health[i] > 0 {
+			out = append(out, m.tpl)
 		}
 	}
 	return out
+}
+
+func (u *Unit) PointsLost(health UnitHealth) float64 {
+	sum := 0.0
+	for i, m := range u.models {
+		remainingRatio := 1 - (float64(health[i]) / float64(m.tpl.Wounds))
+		sum += remainingRatio * m.points
+	}
+	return sum
+}
+
+func (u *Unit) WeaponTemplates() []*WeaponTemplate {
+	return slices.Clone(u.weaponTemplates)
 }
 
 type UnitTemplate struct {

@@ -29,6 +29,10 @@ func (mh UnitHealth) ModelsRemaining() int64 {
 	return sum
 }
 
+func (mh UnitHealth) StringKey() string {
+	return fmt.Sprintf("%v", mh)
+}
+
 func (mh UnitHealth) ToKey() UnitHealthStr {
 	b, err := json.Marshal(mh)
 	if err != nil {

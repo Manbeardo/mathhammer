@@ -32,9 +32,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    10,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   10,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			attackDist := a.attacks()
@@ -60,9 +60,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 11,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    10,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   10,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			attackDist := a.attacks()
@@ -88,9 +88,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 0,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    10,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   10,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			attackDist := a.attacks()
@@ -116,9 +116,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    4,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   4,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			attackDist := a.attacks()
@@ -152,9 +152,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   3,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			hitDist := util.Must(prob.Map(
@@ -189,9 +189,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   3,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			hitDist := util.Must(prob.Map(
@@ -227,9 +227,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   3,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			woundDist := util.Must(prob.Map(
@@ -264,9 +264,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   3,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			woundDist := util.Must(prob.Map(
@@ -302,9 +302,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    3,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   3,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			woundDist := util.Must(prob.Map(
@@ -340,9 +340,9 @@ func TestAttackProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile:  wep,
-				AttackerWeaponCount:    2,
-				DefenderStartingHealth: defender.health.ToDist(),
+				AttackerWeaponProfile: wep,
+				AttackerWeaponCount:   2,
+				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
 
 			healthDist := util.Must(prob.Map(
