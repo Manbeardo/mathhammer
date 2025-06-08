@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 	"github.com/Manbeardo/mathhammer/pkg/core/value"
 )
 
@@ -22,29 +23,29 @@ func Calculate(v value.Interface, opts Opts) prob.Dist[Outcome] {
 
 	valueDist := v.Distribution()
 
-	return prob.FlatMap(
+	return util.Must(prob.FlatMap(
 		targetDist,
 		func(target int64) prob.Dist[Outcome] {
-			rollDist := prob.Map(
+			rollDist := util.Must(prob.Map(
 				valueDist,
 				func(v int64) Outcome {
 					return opts.eval(v, target)
 				},
 				CompareOutcomes,
-			)
-			return prob.FlatMap(
+			))
+			return util.Must(prob.FlatMap(
 				countDist,
 				func(count int64) prob.Dist[Outcome] {
-					return prob.Reduce(
+					return util.Must(prob.Reduce(
 						slices.Repeat([]prob.Dist[Outcome]{rollDist}, int(count)),
 						func(a, b Outcome) Outcome { return SumOutcomes(a, b) },
 						CompareOutcomes,
 						Outcome{},
-					)
+					))
 				},
 				CompareOutcomes,
-			)
+			))
 		},
 		CompareOutcomes,
-	)
+	))
 }

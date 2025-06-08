@@ -7,6 +7,7 @@ import (
 	"github.com/Manbeardo/mathhammer/pkg/core/check"
 	"github.com/Manbeardo/mathhammer/pkg/core/modifier"
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 	"github.com/Manbeardo/mathhammer/pkg/core/value"
 )
 
@@ -43,7 +44,7 @@ func (a AttackProfile) hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
 func (a AttackProfile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 	strengthDist := a.AttackerWeaponProfile.Strength.Distribution()
 	toughness := a.DefenderToughness
-	targetDist := prob.Map(
+	targetDist := util.Must(prob.Map(
 		strengthDist,
 		func(strength int64) int64 {
 			switch {
@@ -60,7 +61,7 @@ func (a AttackProfile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 			}
 		},
 		cmp.Compare,
-	)
+	))
 
 	return check.Calculate(value.Roll(6), check.Opts{
 		Count:                    hits,
@@ -86,19 +87,19 @@ func (a AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist
 		modifier.Add(ap),
 	}
 
-	return prob.FlatMap(
+	return util.Must(prob.FlatMap(
 		woundDist,
 		func(wounds int64) prob.Dist[UnitHealthStr] {
 			healthDist := a.DefenderStartingHealth
 			for range wounds {
 				// TODO: memoize this
-				healthDist = prob.FlatMap(
+				healthDist = util.Must(prob.FlatMap(
 					healthDist,
 					func(healthStr UnitHealthStr) prob.Dist[UnitHealthStr] {
 						healthSlice := healthStr.ToSlice()
 						model, idx := a.allocateWound(healthSlice)
 						if model == nil {
-							return prob.NewConstDist(healthStr)
+							return util.Must(prob.NewConstDist(healthStr))
 						}
 
 						save := saveModifiers.Apply(modifier.ModelArmourSave, model.tpl.Save)
@@ -108,7 +109,7 @@ func (a AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist
 							CriticalFailureThreshold: 1,
 						})
 
-						return prob.Map(
+						return util.Must(prob.Map(
 							checkDist,
 							func(outcome check.Outcome) UnitHealthStr {
 								healthSliceCopy := slices.Clone(healthSlice)
@@ -124,39 +125,39 @@ func (a AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist
 								return healthSliceCopy.ToKey()
 							},
 							cmp.Compare,
-						)
+						))
 					},
 					cmp.Compare,
-				)
+				))
 			}
 			return healthDist
 		},
 		cmp.Compare,
-	)
+	))
 }
 
 func (a AttackProfile) ResolveProfile() prob.Dist[UnitHealthStr] {
 	attacks := a.attacks()
 
 	hitOutcomes := a.hits(attacks)
-	hits := prob.Map(
+	hits := util.Must(prob.Map(
 		hitOutcomes,
 		func(outcome check.Outcome) int64 {
 			return outcome.Successes()
 		},
 		cmp.Compare,
-	)
+	))
 	// TODO: [LETHAL HITS]
 	// TODO: [SUSTAINED HITS]
 
 	woundOutcomes := a.wounds(hits)
-	wounds := prob.Map(
+	wounds := util.Must(prob.Map(
 		woundOutcomes,
 		func(outcome check.Outcome) int64 {
 			return outcome.Successes()
 		},
 		cmp.Compare,
-	)
+	))
 	// TODO: [DEVASTATING WOUNDS]
 	// TODO: mortal wounds
 

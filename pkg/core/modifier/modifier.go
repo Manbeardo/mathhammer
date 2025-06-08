@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
 type Kind string
@@ -39,13 +40,13 @@ func (ms Set) ApplyDist(
 	kind Kind,
 	dist prob.Dist[int64],
 ) prob.Dist[int64] {
-	return prob.Map(
+	return util.Must(prob.Map(
 		dist,
 		func(in int64) int64 {
 			return ms.Apply(kind, in)
 		},
 		cmp.Compare,
-	)
+	))
 }
 
 func (ms Set) Apply(kind Kind, in int64) int64 {

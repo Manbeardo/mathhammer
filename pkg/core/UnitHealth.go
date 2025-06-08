@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
 type UnitHealth []int64
@@ -37,7 +38,7 @@ func (mh UnitHealth) ToKey() UnitHealthStr {
 }
 
 func (mh UnitHealth) ToDist() prob.Dist[UnitHealthStr] {
-	return prob.NewConstDist(mh.ToKey())
+	return util.Must(prob.NewConstDist(mh.ToKey()))
 }
 
 func (mh UnitHealth) String() string {
