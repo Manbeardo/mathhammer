@@ -1,34 +1,47 @@
 package prob
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
+)
 
 // reduces probability distributions of multiple independent events into an aggregate
 // probability distribution
-func Reduce[T comparable, U comparable](
+func Reduce[T any, U any](
 	dists []Dist[T],
 	collector func(U, T) U,
 	cmp func(U, U) int,
 	initialValue U,
-) Dist[U] {
-	prev := map[U]*big.Rat{
-		(initialValue): big.NewRat(1, 1),
+) (Dist[U], error) {
+	out, err := NewDistFunc([]util.Entry[U, *big.Rat]{
+		{Key: initialValue, Value: big.NewRat(1, 1)},
+	}, cmp)
+	if err != nil {
+		return out, err
 	}
 	for _, dist := range dists {
-		next := map[U]*big.Rat{}
-		for t, p := range dist.m {
-			for prevU, prevP := range prev {
+		nextPmap := map[string]*big.Rat{}
+		nextVmap := map[string]U{}
+		for tk, tp := range dist.pmap {
+			tv := dist.vmap[tk]
+			for prevUk, prevUp := range out.pmap {
+				prevUv := out.vmap[prevUk]
 				partialP := big.NewRat(0, 1)
-				partialP.Mul(p, prevP)
-				nextU := collector(prevU, t)
-				nextP, ok := next[nextU]
+				partialP.Mul(tp, prevUp)
+				nextUv := collector(prevUv, tv)
+				nextUk := out.key(nextUv)
+				nextVmap[nextUk] = nextUv
+				nextUp, ok := nextPmap[nextUk]
 				if !ok {
-					nextP = big.NewRat(0, 1)
-					next[nextU] = nextP
+					nextUp = big.NewRat(0, 1)
+					nextPmap[nextUk] = nextUp
 				}
-				nextP.Add(nextP, partialP)
+				nextUp.Add(nextUp, partialP)
 			}
 		}
-		prev = next
+		out.pmap = nextPmap
+		out.vmap = nextVmap
 	}
-	return NewDistFunc(prev, cmp)
+	return out.finalize(cmp)
 }

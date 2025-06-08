@@ -2,6 +2,7 @@ package value
 
 import (
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
 type IntT struct {
@@ -15,5 +16,5 @@ func Int(n int64) IntT {
 var _ Interface = (*IntT)(nil)
 
 func (v IntT) Distribution() prob.Dist[int64] {
-	return prob.NewConstDist(v.N)
+	return util.Must(prob.NewConstDist(v.N))
 }

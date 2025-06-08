@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +16,7 @@ func TestSum(t *testing.T) {
 			RollT{N: 6},
 		}
 		dist := v.Distribution()
-		assert.Equal(t, prob.NewDist(map[int64]*big.Rat{
+		assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
 			2:  big.NewRat(1, 36),
 			3:  big.NewRat(2, 36),
 			4:  big.NewRat(3, 36),
@@ -27,6 +28,6 @@ func TestSum(t *testing.T) {
 			10: big.NewRat(3, 36),
 			11: big.NewRat(2, 36),
 			12: big.NewRat(1, 36),
-		}), dist)
+		})), dist)
 	})
 }

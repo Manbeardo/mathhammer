@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
 type RollT struct {
@@ -17,9 +18,11 @@ func Roll(n int64) RollT {
 var _ Interface = (*RollT)(nil)
 
 func (v RollT) Distribution() prob.Dist[int64] {
-	out := map[int64]*big.Rat{}
+	out := []util.Entry[int64, *big.Rat]{}
 	for i := range v.N {
-		out[i+1] = big.NewRat(1, v.N)
+		out = append(out, util.Entry[int64, *big.Rat]{
+			Key: i + 1, Value: big.NewRat(1, v.N),
+		})
 	}
-	return prob.NewDist(out)
+	return util.Must(prob.NewDist(out))
 }

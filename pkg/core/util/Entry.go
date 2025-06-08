@@ -2,7 +2,7 @@ package util
 
 import "slices"
 
-type Entry[T comparable, U any] struct {
+type Entry[T any, U any] struct {
 	Key   T
 	Value U
 }

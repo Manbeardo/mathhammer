@@ -3,20 +3,26 @@ package prob
 import "math/big"
 
 // Map maps a probability distribution from outcome type T to U
-func Map[T comparable, U comparable](
+func Map[T any, U any](
 	dist Dist[T],
 	mapper func(T) U,
 	cmp func(U, U) int,
-) Dist[U] {
-	out := map[U]*big.Rat{}
-	for t, p := range dist.m {
-		u := mapper(t)
-		outP, ok := out[u]
+) (Dist[U], error) {
+	out, err := empty[U]()
+	if err != nil {
+		return out, err
+	}
+	for tk, p := range dist.pmap {
+		tv := dist.vmap[tk]
+		uv := mapper(tv)
+		uk := out.key(uv)
+		out.vmap[uk] = uv
+		outP, ok := out.pmap[uk]
 		if !ok {
 			outP = big.NewRat(0, 1)
-			out[u] = outP
+			out.pmap[uk] = outP
 		}
 		outP.Add(outP, p)
 	}
-	return NewDistFunc(out, cmp)
+	return out.finalize(cmp)
 }
