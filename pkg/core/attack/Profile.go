@@ -12,14 +12,14 @@ import (
 	"github.com/Manbeardo/mathhammer/pkg/core/value"
 )
 
-type AttackProfile struct {
+type Profile struct {
 	Attack
 	AttackerWeaponProfile *core.WeaponProfileTemplate
 	AttackerWeaponCount   int64
 	DefenderHealth        prob.Dist[core.UnitHealthStr]
 }
 
-func (a AttackProfile) attacks() prob.Dist[int64] {
+func (a Profile) attacks() prob.Dist[int64] {
 	if a.DistanceInches > a.AttackerWeaponProfile.RangeInches ||
 		(a.DistanceInches == 0 && a.AttackerWeaponProfile.RangeInches > 0) {
 		return value.Int(0).Distribution()
@@ -32,7 +32,7 @@ func (a AttackProfile) attacks() prob.Dist[int64] {
 	).Distribution()
 }
 
-func (a AttackProfile) hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
+func (a Profile) hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
 	skill := a.AttackerWeaponProfile.Skill
 	return check.Calculate(value.Roll(6), check.Opts{
 		Count:                    attacks,
@@ -42,7 +42,7 @@ func (a AttackProfile) hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
 	})
 }
 
-func (a AttackProfile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
+func (a Profile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 	strengthDist := a.AttackerWeaponProfile.Strength.Distribution()
 	toughness := a.DefenderToughness
 	targetDist := util.Must(prob.Map(
@@ -72,7 +72,7 @@ func (a AttackProfile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 	})
 }
 
-func (a AttackProfile) allocateWound(healthSlice []int64) (m *core.Model, idx int) {
+func (a Profile) allocateWound(healthSlice []int64) (m *core.Model, idx int) {
 	// TODO: [PRECISION]
 	for idx, health := range healthSlice {
 		if health > 0 {
@@ -82,7 +82,7 @@ func (a AttackProfile) allocateWound(healthSlice []int64) (m *core.Model, idx in
 	return nil, -1
 }
 
-func (a AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.UnitHealthStr] {
+func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.UnitHealthStr] {
 	ap := a.AttackerWeaponProfile.ArmorPenetration
 	saveModifiers := modifier.Set{
 		modifier.Add(ap),
@@ -137,7 +137,7 @@ func (a AttackProfile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist
 	))
 }
 
-func (a AttackProfile) ResolveProfile() prob.Dist[core.UnitHealthStr] {
+func (a Profile) ResolveProfile() prob.Dist[core.UnitHealthStr] {
 	attacks := a.attacks()
 
 	hitOutcomes := a.hits(attacks)

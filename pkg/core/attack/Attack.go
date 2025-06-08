@@ -19,7 +19,7 @@ type AttackOpts struct {
 	DistanceInches        int64
 }
 
-type AttackResult struct {
+type Result struct {
 	AttackerHealth   prob.Dist[core.UnitHealthStr]
 	DefenderHealth   prob.Dist[core.UnitHealthStr]
 	SelectedProfiles []util.Entry[*core.WeaponProfileTemplate, int64]
@@ -38,7 +38,7 @@ func NewAttack(opts AttackOpts) Attack {
 	}
 }
 
-func (a Attack) ResolveAttack() AttackResult {
+func (a Attack) ResolveAttack() Result {
 	selectedProfiles := []util.Entry[*core.WeaponProfileTemplate, int64]{}
 	defenderHealth := a.InitialDefenderHealth.ToDist()
 	for _, wtpl := range a.AttackerUnit.WeaponTemplates() {
@@ -47,7 +47,7 @@ func (a Attack) ResolveAttack() AttackResult {
 		bestWoundsRemaining := core.MeanWoundsRemaining(defenderHealth)
 		var bestProfile *core.WeaponProfileTemplate
 		for _, profile := range wtpl.Profiles {
-			result := AttackProfile{
+			result := Profile{
 				Attack:                a,
 				AttackerWeaponProfile: profile,
 				AttackerWeaponCount:   count,
@@ -68,7 +68,7 @@ func (a Attack) ResolveAttack() AttackResult {
 			})
 		}
 	}
-	return AttackResult{
+	return Result{
 		AttackerHealth:   a.InitialAttackerHealth.ToDist(),
 		DefenderHealth:   defenderHealth,
 		SelectedProfiles: selectedProfiles,

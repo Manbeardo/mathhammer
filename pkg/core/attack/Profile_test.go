@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAttackProfile(t *testing.T) {
+func TestProfile(t *testing.T) {
 	t.Run("attacks", func(t *testing.T) {
 		t.Run("applies the weapon profile the correct number of times", func(t *testing.T) {
 			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
@@ -27,7 +27,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -55,7 +55,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -83,7 +83,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -111,7 +111,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(4, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -147,7 +147,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -184,7 +184,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -222,7 +222,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -259,7 +259,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -297,7 +297,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
@@ -335,7 +335,7 @@ func TestAttackProfile(t *testing.T) {
 			}
 			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
-			a := AttackProfile{
+			a := Profile{
 				Attack: NewAttack(AttackOpts{
 					AttackerUnit:   attacker,
 					DefenderUnit:   defender,
