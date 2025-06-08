@@ -15,7 +15,7 @@ type Profile struct {
 	Attack
 	AttackerWeaponProfile *core.WeaponProfileTemplate
 	AttackerWeaponCount   int64
-	DefenderHealth        prob.Dist[core.UnitHealthStr]
+	DefenderHealth        prob.Dist[core.UnitHealth]
 }
 
 func (a Profile) attacks() prob.Dist[int64] {
@@ -80,7 +80,7 @@ func (a Profile) allocateWound(healthSlice []int64) (m *core.Model, idx int) {
 	return nil, -1
 }
 
-func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.UnitHealthStr] {
+func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.UnitHealth] {
 	ap := a.AttackerWeaponProfile.ArmorPenetration
 	saveModifiers := modifier.Set{
 		modifier.Add(ap),
@@ -88,17 +88,16 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 
 	return util.Must(prob.FlatMap(
 		woundDist,
-		func(wounds int64) prob.Dist[core.UnitHealthStr] {
+		func(wounds int64) prob.Dist[core.UnitHealth] {
 			healthDist := a.DefenderHealth
 			for range wounds {
 				// TODO: memoize this
 				healthDist = util.Must(prob.FlatMap(
 					healthDist,
-					func(healthStr core.UnitHealthStr) prob.Dist[core.UnitHealthStr] {
-						healthSlice := healthStr.ToSlice()
-						model, idx := a.allocateWound(healthSlice)
+					func(health core.UnitHealth) prob.Dist[core.UnitHealth] {
+						model, idx := a.allocateWound(health)
 						if model == nil {
-							return util.Must(prob.FromConst(healthStr))
+							return util.Must(prob.FromConst(health))
 						}
 
 						save := saveModifiers.Apply(modifier.ModelArmourSave, model.Save())
@@ -110,18 +109,18 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 
 						return util.Must(prob.Map(
 							checkDist,
-							func(outcome check.Outcome) core.UnitHealthStr {
-								healthSliceCopy := slices.Clone(healthSlice)
+							func(outcome check.Outcome) core.UnitHealth {
+								healthCopy := slices.Clone(health)
 								damage := a.AttackerWeaponProfile.Damage
 								for range outcome.Failures() {
-									health := healthSliceCopy[idx]
+									health := healthCopy[idx]
 									if damage > health {
-										healthSliceCopy[idx] = 0
+										healthCopy[idx] = 0
 									} else {
-										healthSliceCopy[idx] -= damage
+										healthCopy[idx] -= damage
 									}
 								}
-								return healthSliceCopy.ToKey()
+								return healthCopy
 							},
 						))
 					},
@@ -132,7 +131,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 	))
 }
 
-func (a Profile) ResolveProfile() prob.Dist[core.UnitHealthStr] {
+func (a Profile) ResolveProfile() prob.Dist[core.UnitHealth] {
 	attacks := a.attacks()
 
 	hitOutcomes := a.hits(attacks)

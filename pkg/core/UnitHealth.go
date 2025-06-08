@@ -1,7 +1,7 @@
 package core
 
 import (
-	"encoding/json"
+	"cmp"
 	"fmt"
 	"math/big"
 
@@ -33,40 +33,29 @@ func (mh UnitHealth) StringKey() string {
 	return fmt.Sprintf("%v", mh)
 }
 
-func (mh UnitHealth) ToKey() UnitHealthStr {
-	b, err := json.Marshal(mh)
-	if err != nil {
-		panic(fmt.Errorf("marshaling ModelHealth: %w", err))
-	}
-	return UnitHealthStr(b)
+func (mh UnitHealth) ToDist() prob.Dist[UnitHealth] {
+	return util.Must(prob.FromConst(mh))
 }
 
-func (mh UnitHealth) ToDist() prob.Dist[UnitHealthStr] {
-	return util.Must(prob.FromConst(mh.ToKey()))
-}
-
-func (mh UnitHealth) String() string {
-	return string(mh.ToKey())
-}
-
-type UnitHealthStr string
-
-func (mh UnitHealthStr) ToSlice() UnitHealth {
-	out := []int64{}
-	err := json.Unmarshal([]byte(mh), &out)
-	if err != nil {
-		panic(fmt.Errorf("unmarshaling ModelHealth: %w", err))
-	}
-	return out
-}
-
-func MeanWoundsRemaining(dist prob.Dist[UnitHealthStr]) *big.Rat {
+func MeanWoundsRemaining(dist prob.Dist[UnitHealth]) *big.Rat {
 	avg := big.NewRat(0, 1)
-	for healthStr, p := range dist.Iter() {
-		w := big.NewRat(healthStr.ToSlice().WoundsRemaining(), 1)
+	for health, p := range dist.Iter() {
+		w := big.NewRat(health.WoundsRemaining(), 1)
 		var partial big.Rat
 		partial.Mul(w, p)
 		avg.Add(avg, &partial)
 	}
 	return avg
+}
+
+func CompareHealth(a, b UnitHealth) int {
+	if c := cmp.Compare(a.WoundsRemaining(), b.WoundsRemaining()); c != 0 {
+		return c
+	}
+	for i := 1; i <= len(a) && i <= len(b); i++ {
+		if c := cmp.Compare(a[len(a)-i], b[len(b)-i]); c != 0 {
+			return c
+		}
+	}
+	return 0
 }

@@ -20,8 +20,8 @@ type AttackOpts struct {
 }
 
 type Result struct {
-	AttackerHealth   prob.Dist[core.UnitHealthStr]
-	DefenderHealth   prob.Dist[core.UnitHealthStr]
+	AttackerHealth   prob.Dist[core.UnitHealth]
+	DefenderHealth   prob.Dist[core.UnitHealth]
 	SelectedProfiles []util.Entry[*core.WeaponProfileTemplate, int64]
 }
 
