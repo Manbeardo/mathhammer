@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
@@ -159,4 +160,19 @@ func (d Dist[T]) Percentile(p *big.Rat) T {
 
 func (d Dist[T]) Median() T {
 	return d.Percentile(big.NewRat(1, 2))
+}
+
+func (d Dist[T]) StringKey() string {
+	b := strings.Builder{}
+	b.WriteString("{")
+	for i, v := range d.sorted {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		k := d.key(v)
+		p := d.pmap[k]
+		fmt.Fprintf(&b, "%s: %s", k, p.RatString())
+	}
+	b.WriteString("}")
+	return b.String()
 }
