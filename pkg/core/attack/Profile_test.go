@@ -1,7 +1,6 @@
 package attack
 
 import (
-	"cmp"
 	"math/big"
 	"testing"
 
@@ -161,7 +160,6 @@ func TestProfile(t *testing.T) {
 			hitDist := util.Must(prob.Map(
 				a.hits(value.Int(3).Distribution()),
 				func(o check.Outcome) int64 { return o.Successes() },
-				cmp.Compare,
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
@@ -198,7 +196,6 @@ func TestProfile(t *testing.T) {
 			hitDist := util.Must(prob.Map(
 				a.hits(value.Roll(2).Distribution()),
 				func(o check.Outcome) int64 { return o.Successes() },
-				cmp.Compare,
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
@@ -236,7 +233,6 @@ func TestProfile(t *testing.T) {
 			woundDist := util.Must(prob.Map(
 				a.wounds(value.Int(3).Distribution()),
 				func(o check.Outcome) int64 { return o.Successes() },
-				cmp.Compare,
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
@@ -273,7 +269,6 @@ func TestProfile(t *testing.T) {
 			woundDist := util.Must(prob.Map(
 				a.wounds(value.Roll(2).Distribution()),
 				func(o check.Outcome) int64 { return o.Successes() },
-				cmp.Compare,
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
@@ -311,7 +306,6 @@ func TestProfile(t *testing.T) {
 			woundDist := util.Must(prob.Map(
 				a.resolveNormalWounds(value.Int(2).Distribution()),
 				func(s core.UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
-				cmp.Compare,
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{
@@ -349,7 +343,6 @@ func TestProfile(t *testing.T) {
 			healthDist := util.Must(prob.Map(
 				a.ResolveProfile(),
 				func(s core.UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
-				cmp.Compare,
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(map[int64]*big.Rat{

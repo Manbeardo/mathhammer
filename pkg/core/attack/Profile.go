@@ -1,7 +1,6 @@
 package attack
 
 import (
-	"cmp"
 	"slices"
 
 	"github.com/Manbeardo/mathhammer/pkg/core"
@@ -61,7 +60,6 @@ func (a Profile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 				return 5
 			}
 		},
-		cmp.Compare,
 	))
 
 	return check.Calculate(value.Roll(6), check.Opts{
@@ -125,15 +123,12 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 								}
 								return healthSliceCopy.ToKey()
 							},
-							cmp.Compare,
 						))
 					},
-					cmp.Compare,
 				))
 			}
 			return healthDist
 		},
-		cmp.Compare,
 	))
 }
 
@@ -146,7 +141,6 @@ func (a Profile) ResolveProfile() prob.Dist[core.UnitHealthStr] {
 		func(outcome check.Outcome) int64 {
 			return outcome.Successes()
 		},
-		cmp.Compare,
 	))
 	// TODO: [LETHAL HITS]
 	// TODO: [SUSTAINED HITS]
@@ -157,7 +151,6 @@ func (a Profile) ResolveProfile() prob.Dist[core.UnitHealthStr] {
 		func(outcome check.Outcome) int64 {
 			return outcome.Successes()
 		},
-		cmp.Compare,
 	))
 	// TODO: [DEVASTATING WOUNDS]
 	// TODO: mortal wounds

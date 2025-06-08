@@ -11,7 +11,6 @@ import (
 func FlatMap[T any, U any](
 	dist Dist[T],
 	mapper func(T) Dist[U],
-	cmp func(U, U) int,
 ) (Dist[U], error) {
 	out, err := empty[U]()
 	if err != nil {
@@ -34,5 +33,5 @@ func FlatMap[T any, U any](
 		}
 	}
 
-	return out.finalize(cmp)
+	return out.finalize()
 }

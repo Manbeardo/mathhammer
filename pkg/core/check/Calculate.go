@@ -31,7 +31,6 @@ func Calculate(v value.Interface, opts Opts) prob.Dist[Outcome] {
 				func(v int64) Outcome {
 					return opts.eval(v, target)
 				},
-				CompareOutcomes,
 			))
 			return util.Must(prob.FlatMap(
 				countDist,
@@ -39,13 +38,10 @@ func Calculate(v value.Interface, opts Opts) prob.Dist[Outcome] {
 					return util.Must(prob.Reduce(
 						slices.Repeat([]prob.Dist[Outcome]{rollDist}, int(count)),
 						func(a, b Outcome) Outcome { return SumOutcomes(a, b) },
-						CompareOutcomes,
 						Outcome{},
 					))
 				},
-				CompareOutcomes,
 			))
 		},
-		CompareOutcomes,
 	))
 }

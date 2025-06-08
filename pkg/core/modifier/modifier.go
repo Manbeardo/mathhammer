@@ -45,7 +45,6 @@ func (ms Set) ApplyDist(
 		func(in int64) int64 {
 			return ms.Apply(kind, in)
 		},
-		cmp.Compare,
 	))
 }
 

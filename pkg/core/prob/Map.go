@@ -6,7 +6,6 @@ import "math/big"
 func Map[T any, U any](
 	dist Dist[T],
 	mapper func(T) U,
-	cmp func(U, U) int,
 ) (Dist[U], error) {
 	out, err := empty[U]()
 	if err != nil {
@@ -24,5 +23,5 @@ func Map[T any, U any](
 		}
 		outP.Add(outP, p)
 	}
-	return out.finalize(cmp)
+	return out.finalize()
 }

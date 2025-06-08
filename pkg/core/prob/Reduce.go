@@ -11,18 +11,17 @@ import (
 func Reduce[T any, U any](
 	dists []Dist[T],
 	collector func(U, T) U,
-	cmp func(U, U) int,
 	initialValue U,
 ) (Dist[U], error) {
-	out, err := FromEntriesFunc([]util.Entry[U, *big.Rat]{
+	out, err := FromEntries([]util.Entry[U, *big.Rat]{
 		{Key: initialValue, Value: big.NewRat(1, 1)},
-	}, cmp)
+	})
 	if err != nil {
 		return out, err
 	}
 	for _, dist := range dists {
-		nextPmap := map[string]*big.Rat{}
-		nextVmap := map[string]U{}
+		nextPmap := map[Key]*big.Rat{}
+		nextVmap := map[Key]U{}
 		for tk, tp := range dist.pmap {
 			tv := dist.vmap[tk]
 			for prevUk, prevUp := range out.pmap {
@@ -43,5 +42,5 @@ func Reduce[T any, U any](
 		out.pmap = nextPmap
 		out.vmap = nextVmap
 	}
-	return out.finalize(cmp)
+	return out.finalize()
 }

@@ -1,8 +1,6 @@
 package value
 
 import (
-	"cmp"
-
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
@@ -23,7 +21,6 @@ func (sum SumT) Distribution() prob.Dist[int64] {
 	return util.Must(prob.Reduce(
 		dists,
 		func(a, b int64) int64 { return a + b },
-		cmp.Compare,
 		0,
 	))
 }

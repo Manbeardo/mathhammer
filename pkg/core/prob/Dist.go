@@ -3,9 +3,9 @@
 package prob
 
 import (
-	"cmp"
 	"fmt"
 	"iter"
+	"maps"
 	"math/big"
 	"reflect"
 	"slices"
@@ -20,6 +20,8 @@ type StringKeyer interface {
 
 type keyFuncKind int
 
+type Key string
+
 const (
 	keyFuncInvalid keyFuncKind = iota
 	keyFuncInterface
@@ -28,9 +30,8 @@ const (
 
 // a discrete probability distribution
 type Dist[T any] struct {
-	vmap        map[string]T
-	pmap        map[string]*big.Rat
-	sorted      []T
+	vmap        map[Key]T
+	pmap        map[Key]*big.Rat
 	keyFuncKind keyFuncKind
 }
 
@@ -41,17 +42,13 @@ func empty[T any]() (Dist[T], error) {
 	}
 
 	return Dist[T]{
-		vmap:        map[string]T{},
-		pmap:        map[string]*big.Rat{},
+		vmap:        map[Key]T{},
+		pmap:        map[Key]*big.Rat{},
 		keyFuncKind: keyFunc,
 	}, nil
 }
 
-func FromEntries[T cmp.Ordered](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
-	return FromEntriesFunc(m, cmp.Compare)
-}
-
-func FromEntriesFunc[T any](m []util.Entry[T, *big.Rat], cmp func(T, T) int) (Dist[T], error) {
+func FromEntries[T any](m []util.Entry[T, *big.Rat]) (Dist[T], error) {
 	d, err := empty[T]()
 	if err != nil {
 		return d, err
@@ -67,24 +64,19 @@ func FromEntriesFunc[T any](m []util.Entry[T, *big.Rat], cmp func(T, T) int) (Di
 		d.pmap[k] = p
 	}
 
-	return d.finalize(cmp)
+	return d.finalize()
 }
 
-func FromMap[T cmp.Ordered](m map[T]*big.Rat) (Dist[T], error) {
-	return FromMapFunc(m, cmp.Compare)
-}
-
-func FromMapFunc[T comparable](m map[T]*big.Rat, cmp func(T, T) int) (Dist[T], error) {
-	return FromEntriesFunc(util.OrderedEntries(m, cmp), cmp)
+func FromMap[T comparable](m map[T]*big.Rat) (Dist[T], error) {
+	return FromEntries(util.Entries(m))
 }
 
 // FromConst returns a distribution whose sole outcome is v
 func FromConst[T any](v T) (Dist[T], error) {
-	return FromEntriesFunc(
+	return FromEntries(
 		[]util.Entry[T, *big.Rat]{
 			{Key: v, Value: big.NewRat(1, 1)},
 		},
-		func(T, T) int { return 0 },
 	)
 }
 
@@ -99,15 +91,11 @@ func keyFuncKindFor[T any]() (keyFuncKind, error) {
 	return keyFuncInvalid, fmt.Errorf("%s does not satisfy comparable or StringKeyer", t.String())
 }
 
-func (d Dist[T]) finalize(cmp func(T, T) int) (Dist[T], error) {
-	d.sorted = nil
+func (d Dist[T]) finalize() (Dist[T], error) {
 	var psum big.Rat
-	for k, v := range d.vmap {
-		p := d.pmap[k]
-		d.sorted = append(d.sorted, v)
+	for _, p := range d.pmap {
 		psum.Add(&psum, p)
 	}
-	slices.SortFunc(d.sorted, cmp)
 
 	if f, ok := psum.Float64(); !ok || f != 1 {
 		return d, fmt.Errorf("sum of all probabilities must be 1 (is: %f)", f)
@@ -116,15 +104,21 @@ func (d Dist[T]) finalize(cmp func(T, T) int) (Dist[T], error) {
 	return d, nil
 }
 
-func (d Dist[T]) key(v any) string {
+func (d Dist[T]) key(v any) Key {
 	switch d.keyFuncKind {
 	case keyFuncInterface:
-		return v.(StringKeyer).StringKey()
+		return Key(v.(StringKeyer).StringKey())
 	case keyFuncComparable:
-		return fmt.Sprintf("%v", v)
+		return Key(fmt.Sprintf("%v", v))
 	default:
 		panic(fmt.Errorf("invalid keyFuncKind: %d", d.keyFuncKind))
 	}
+}
+
+func (d Dist[T]) Keys() []Key {
+	keys := slices.Collect(maps.Keys(d.pmap))
+	slices.Sort(keys)
+	return keys
 }
 
 func (d Dist[T]) Format(w fmt.State, v rune) {
@@ -133,8 +127,8 @@ func (d Dist[T]) Format(w fmt.State, v rune) {
 
 func (d Dist[T]) Iter() iter.Seq2[T, *big.Rat] {
 	return func(yield func(T, *big.Rat) bool) {
-		for _, v := range d.sorted {
-			if !yield(v, d.pmap[d.key(v)]) {
+		for _, k := range d.Keys() {
+			if !yield(d.vmap[k], d.pmap[k]) {
 				return
 			}
 		}
@@ -145,31 +139,34 @@ func (d Dist[T]) Distribution() Dist[T] {
 	return d
 }
 
-func (d Dist[T]) Percentile(p *big.Rat) T {
-	// d.outcomes is already sorted, so we just pick the first
-	// value whose cumulative probability is >= p
+func (d Dist[T]) Percentile(p *big.Rat, cmp func(T, T) int) T {
+	values := slices.Collect(maps.Values(d.vmap))
+	slices.SortFunc(values, cmp)
+
 	sum := big.NewRat(0, 1)
-	for _, v := range d.sorted {
+	for _, v := range values {
 		sum = sum.Add(sum, d.pmap[d.key(v)])
 		if sum.Cmp(p) >= 0 {
 			return v
 		}
 	}
-	return d.sorted[len(d.sorted)-1]
+	return values[len(values)-1]
 }
 
-func (d Dist[T]) Median() T {
-	return d.Percentile(big.NewRat(1, 2))
+func (d Dist[T]) Median(cmp func(T, T) int) T {
+	return d.Percentile(big.NewRat(1, 2), cmp)
 }
 
 func (d Dist[T]) StringKey() string {
+	keys := slices.Collect(maps.Keys(d.pmap))
+	slices.Sort(keys)
+
 	b := strings.Builder{}
 	b.WriteString("{")
-	for i, v := range d.sorted {
+	for i, k := range keys {
 		if i > 0 {
 			b.WriteString(", ")
 		}
-		k := d.key(v)
 		p := d.pmap[k]
 		fmt.Fprintf(&b, "%s: %s", k, p.RatString())
 	}
