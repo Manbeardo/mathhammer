@@ -14,6 +14,10 @@ func NewModel(unit *UnitTemplate, model *ModelTemplate) *Model {
 	}
 }
 
+func (m Model) Save() int64 {
+	return m.tpl.Save
+}
+
 type ModelTemplate struct {
 	Name       string
 	Toughness  int64

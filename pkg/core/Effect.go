@@ -1,7 +1,7 @@
 package core
 
 type Effect interface {
-	ApplyEffect(attack *Attack)
+	ApplyEffect()
 }
 
 type EffectApplyModifier struct {

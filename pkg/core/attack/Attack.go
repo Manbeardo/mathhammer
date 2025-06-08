@@ -1,6 +1,7 @@
-package core
+package attack
 
 import (
+	"github.com/Manbeardo/mathhammer/pkg/core"
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
@@ -11,25 +12,25 @@ type Attack struct {
 }
 
 type AttackOpts struct {
-	AttackerUnit          *Unit
-	DefenderUnit          *Unit
-	InitialAttackerHealth UnitHealth
-	InitialDefenderHealth UnitHealth
+	AttackerUnit          *core.Unit
+	DefenderUnit          *core.Unit
+	InitialAttackerHealth core.UnitHealth
+	InitialDefenderHealth core.UnitHealth
 	DistanceInches        int64
 }
 
 type AttackResult struct {
-	AttackerHealth   prob.Dist[UnitHealthStr]
-	DefenderHealth   prob.Dist[UnitHealthStr]
-	SelectedProfiles []util.Entry[*WeaponProfileTemplate, int64]
+	AttackerHealth   prob.Dist[core.UnitHealthStr]
+	DefenderHealth   prob.Dist[core.UnitHealthStr]
+	SelectedProfiles []util.Entry[*core.WeaponProfileTemplate, int64]
 }
 
 func NewAttack(opts AttackOpts) Attack {
 	if opts.InitialAttackerHealth == nil {
-		opts.InitialAttackerHealth = opts.AttackerUnit.startingHealth
+		opts.InitialAttackerHealth = opts.AttackerUnit.StartingHealth()
 	}
 	if opts.InitialDefenderHealth == nil {
-		opts.InitialDefenderHealth = opts.DefenderUnit.startingHealth
+		opts.InitialDefenderHealth = opts.DefenderUnit.StartingHealth()
 	}
 	return Attack{
 		AttackOpts:        opts,
@@ -38,13 +39,13 @@ func NewAttack(opts AttackOpts) Attack {
 }
 
 func (a Attack) ResolveAttack() AttackResult {
-	selectedProfiles := []util.Entry[*WeaponProfileTemplate, int64]{}
+	selectedProfiles := []util.Entry[*core.WeaponProfileTemplate, int64]{}
 	defenderHealth := a.InitialDefenderHealth.ToDist()
 	for _, wtpl := range a.AttackerUnit.WeaponTemplates() {
 		count := wtpl.AvailableCount(a.AttackerUnit, a.InitialAttackerHealth)
 		bestResult := defenderHealth
-		bestWoundsRemaining := MeanWoundsRemaining(defenderHealth)
-		var bestProfile *WeaponProfileTemplate
+		bestWoundsRemaining := core.MeanWoundsRemaining(defenderHealth)
+		var bestProfile *core.WeaponProfileTemplate
 		for _, profile := range wtpl.Profiles {
 			result := AttackProfile{
 				Attack:                a,
@@ -52,7 +53,7 @@ func (a Attack) ResolveAttack() AttackResult {
 				AttackerWeaponCount:   count,
 				DefenderHealth:        defenderHealth,
 			}.ResolveProfile()
-			woundsRemaining := MeanWoundsRemaining(result)
+			woundsRemaining := core.MeanWoundsRemaining(result)
 			if bestWoundsRemaining.Cmp(woundsRemaining) == 1 {
 				bestResult = result
 				bestWoundsRemaining = woundsRemaining
@@ -61,7 +62,7 @@ func (a Attack) ResolveAttack() AttackResult {
 		}
 		defenderHealth = bestResult
 		if bestProfile != nil {
-			selectedProfiles = append(selectedProfiles, util.Entry[*WeaponProfileTemplate, int64]{
+			selectedProfiles = append(selectedProfiles, util.Entry[*core.WeaponProfileTemplate, int64]{
 				Key:   bestProfile,
 				Value: count,
 			})

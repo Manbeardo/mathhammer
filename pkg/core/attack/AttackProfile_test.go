@@ -1,10 +1,11 @@
-package core
+package attack
 
 import (
 	"cmp"
 	"math/big"
 	"testing"
 
+	"github.com/Manbeardo/mathhammer/pkg/core"
 	"github.com/Manbeardo/mathhammer/pkg/core/check"
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
@@ -15,8 +16,8 @@ import (
 func TestAttackProfile(t *testing.T) {
 	t.Run("attacks", func(t *testing.T) {
 		t.Run("applies the weapon profile the correct number of times", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            3,
@@ -24,7 +25,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -43,8 +44,8 @@ func TestAttackProfile(t *testing.T) {
 		})
 
 		t.Run("0 attacks when attack is outside of weapon range", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      10,
 				Attacks:          value.Int(1),
 				Skill:            3,
@@ -52,7 +53,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -71,8 +72,8 @@ func TestAttackProfile(t *testing.T) {
 		})
 
 		t.Run("0 attacks when using melee weapon in ranged attack", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            3,
@@ -80,7 +81,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -99,8 +100,8 @@ func TestAttackProfile(t *testing.T) {
 		})
 
 		t.Run("handles random values correctly", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Roll(2),
 				Skill:            0,
@@ -108,7 +109,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(4, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(4, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -135,8 +136,8 @@ func TestAttackProfile(t *testing.T) {
 
 	t.Run("hits", func(t *testing.T) {
 		t.Run("calculates hits correctly for a simple example", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
@@ -144,7 +145,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -172,8 +173,8 @@ func TestAttackProfile(t *testing.T) {
 		})
 
 		t.Run("calculates hits correctly for a simple example with random attacks", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
@@ -181,7 +182,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -210,8 +211,8 @@ func TestAttackProfile(t *testing.T) {
 
 	t.Run("wounds", func(t *testing.T) {
 		t.Run("calculates wounds correctly for a simple example", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
@@ -219,7 +220,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -247,8 +248,8 @@ func TestAttackProfile(t *testing.T) {
 		})
 
 		t.Run("calculates wounds correctly for a simple example with random attacks", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
@@ -256,7 +257,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -285,8 +286,8 @@ func TestAttackProfile(t *testing.T) {
 
 	t.Run("resolveNormalWounds", func(t *testing.T) {
 		t.Run("calculates health correctly for a simple example", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(2))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(2))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
@@ -294,7 +295,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -309,7 +310,7 @@ func TestAttackProfile(t *testing.T) {
 
 			woundDist := util.Must(prob.Map(
 				a.resolveNormalWounds(value.Int(2).Distribution()),
-				func(s UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
+				func(s core.UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
 				cmp.Compare,
 			))
 
@@ -323,8 +324,8 @@ func TestAttackProfile(t *testing.T) {
 
 	t.Run("ResolveProfile", func(t *testing.T) {
 		t.Run("works correctly in a basic MEQ example", func(t *testing.T) {
-			defender := NewUnit(exampleUnitTpl_MEQ(2))
-			wep := &WeaponProfileTemplate{
+			defender := core.NewUnit(exampleUnitTpl_MEQ(2))
+			wep := &core.WeaponProfileTemplate{
 				RangeInches:      12,
 				Attacks:          value.Int(2),
 				Skill:            3,
@@ -332,7 +333,7 @@ func TestAttackProfile(t *testing.T) {
 				ArmorPenetration: 1,
 				Damage:           1,
 			}
-			attacker := NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
+			attacker := core.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
 			a := AttackProfile{
 				Attack: NewAttack(AttackOpts{
@@ -347,7 +348,7 @@ func TestAttackProfile(t *testing.T) {
 
 			healthDist := util.Must(prob.Map(
 				a.ResolveProfile(),
-				func(s UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
+				func(s core.UnitHealthStr) int64 { return s.ToSlice().WoundsRemaining() },
 				cmp.Compare,
 			))
 
