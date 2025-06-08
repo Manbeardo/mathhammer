@@ -11,14 +11,14 @@ func exampleUnitTpl_MEQ(count int) *core.UnitTemplate {
 		PointsCost: 100,
 		Models: []util.Entry[*core.ModelTemplate, int]{
 			{
-				Key: &core.ModelTemplate{
+				K: &core.ModelTemplate{
 					Name:       "Jimmy Space",
 					Toughness:  4,
 					Save:       3,
 					Wounds:     2,
 					Leadership: 6,
 				},
-				Value: count,
+				V: count,
 			},
 		},
 	}
@@ -26,13 +26,13 @@ func exampleUnitTpl_MEQ(count int) *core.UnitTemplate {
 
 func exampleUnitTpl_MEQWithWeaponProfile(count int, wep *core.WeaponProfileTemplate) *core.UnitTemplate {
 	tpl := exampleUnitTpl_MEQ(count)
-	tpl.Models[0].Key.Weapons = []util.Entry[*core.WeaponTemplate, int]{
+	tpl.Models[0].K.Weapons = []util.Entry[*core.WeaponTemplate, int]{
 		{
-			Key: &core.WeaponTemplate{
+			K: &core.WeaponTemplate{
 				Name:     "Bullet Gun",
 				Profiles: []*core.WeaponProfileTemplate{wep},
 			},
-			Value: 1,
+			V: 1,
 		},
 	}
 	return tpl

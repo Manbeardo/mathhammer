@@ -12,7 +12,7 @@ func Reduce[T any, U any](
 	initialValue U,
 ) (Dist[U], error) {
 	out, err := FromEntries([]EntryT[U]{
-		{Key: initialValue, Value: big.NewRat(1, 1)},
+		{K: initialValue, V: big.NewRat(1, 1)},
 	})
 	if err != nil {
 		return out, err

@@ -59,7 +59,7 @@ func FromEntries[T any](m []EntryT[T]) (Dist[T], error) {
 	}
 
 	for _, e := range m {
-		v, p := e.Key, e.Value
+		v, p := e.K, e.V
 		k := d.key(v)
 		if _, exists := d.vmap[k]; exists {
 			return d, fmt.Errorf("multiple values with same key: %s", k)
@@ -79,7 +79,7 @@ func FromMap[T comparable](m MapT[T]) (Dist[T], error) {
 func FromConst[T any](v T) (Dist[T], error) {
 	return FromEntries(
 		[]EntryT[T]{
-			{Key: v, Value: big.NewRat(1, 1)},
+			{K: v, V: big.NewRat(1, 1)},
 		},
 	)
 }
@@ -129,12 +129,12 @@ func (d Dist[T]) vmapComparator() Comparator[util.Entry[Key, T]] {
 		vcmp := unsafeComparatorFor[T]()
 		if vcmp != nil {
 			return func(a, b util.Entry[Key, T]) int {
-				return vcmp(a.Value, b.Value)
+				return vcmp(a.V, b.V)
 			}
 		}
 	}
 	return func(a, b util.Entry[Key, T]) int {
-		return cmp.Compare(a.Key, b.Key)
+		return cmp.Compare(a.K, b.K)
 	}
 }
 
@@ -143,7 +143,7 @@ func (d Dist[T]) Keys() []Key {
 	slices.SortFunc(entries, d.vmapComparator())
 	keys := []Key{}
 	for _, e := range entries {
-		keys = append(keys, e.Key)
+		keys = append(keys, e.K)
 	}
 	return keys
 }
@@ -154,7 +154,7 @@ func (d Dist[T]) Lookup(k Key) (EntryT[T], bool) {
 		return EntryT[T]{}, false
 	}
 	v := d.vmap[k]
-	return EntryT[T]{Key: v, Value: p}, true
+	return EntryT[T]{K: v, V: p}, true
 }
 
 func (d Dist[T]) Format(w fmt.State, v rune) {

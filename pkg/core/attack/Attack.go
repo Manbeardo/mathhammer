@@ -63,8 +63,8 @@ func (a Attack) ResolveAttack() Result {
 		defenderHealth = bestResult
 		if bestProfile != nil {
 			selectedProfiles = append(selectedProfiles, util.Entry[*core.WeaponProfileTemplate, int64]{
-				Key:   bestProfile,
-				Value: count,
+				K: bestProfile,
+				V: count,
 			})
 		}
 	}

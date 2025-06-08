@@ -35,7 +35,7 @@ func keysSortingTestCase[V cmp.Ordered](t *testing.T, values []V) {
 		entries := []EntryT[V]{}
 		for _, v := range values {
 			entries = append(entries, EntryT[V]{
-				Key: v, Value: big.NewRat(1, int64(len(values))),
+				K: v, V: big.NewRat(1, int64(len(values))),
 			})
 		}
 		rand.Shuffle(len(entries), func(i, j int) {
@@ -47,7 +47,7 @@ func keysSortingTestCase[V cmp.Ordered](t *testing.T, values []V) {
 		actual := []V{}
 		for _, k := range d.Keys() {
 			e, _ := d.Lookup(k)
-			actual = append(actual, e.Key)
+			actual = append(actual, e.K)
 		}
 
 		assert.Equal(t, values, actual)
@@ -97,15 +97,15 @@ func TestDist(t *testing.T) {
 
 			entries := []EntryT[ExampleInt]{}
 			for v, p := range d.Iter() {
-				entries = append(entries, EntryT[ExampleInt]{Key: v, Value: p})
+				entries = append(entries, EntryT[ExampleInt]{K: v, V: p})
 			}
 
 			assert.Equal(t,
 				[]EntryT[ExampleInt]{
-					{Key: 1, Value: big.NewRat(1, 4)},
-					{Key: 2, Value: big.NewRat(1, 4)},
-					{Key: 10, Value: big.NewRat(1, 4)},
-					{Key: 11, Value: big.NewRat(1, 4)},
+					{K: 1, V: big.NewRat(1, 4)},
+					{K: 2, V: big.NewRat(1, 4)},
+					{K: 10, V: big.NewRat(1, 4)},
+					{K: 11, V: big.NewRat(1, 4)},
 				},
 				entries,
 			)
@@ -235,24 +235,24 @@ func TestDist(t *testing.T) {
 func TestFromEntries(t *testing.T) {
 	t.Run("returns an error if the probabilities don't sum to 1", func(t *testing.T) {
 		_, err := FromEntries([]EntryT[string]{
-			{Key: "foo", Value: big.NewRat(1, 3)},
-			{Key: "bar", Value: big.NewRat(1, 3)},
+			{K: "foo", V: big.NewRat(1, 3)},
+			{K: "bar", V: big.NewRat(1, 3)},
 		})
 		assert.ErrorContains(t, err, "sum of all probabilities must be 1")
 	})
 
 	t.Run("returns an error for an invalid value type", func(t *testing.T) {
 		_, err := FromEntries([]EntryT[[]string]{
-			{Key: []string{"foo"}, Value: big.NewRat(1, 2)},
-			{Key: []string{"bar"}, Value: big.NewRat(1, 2)},
+			{K: []string{"foo"}, V: big.NewRat(1, 2)},
+			{K: []string{"bar"}, V: big.NewRat(1, 2)},
 		})
 		assert.ErrorContains(t, err, "[]string does not satisfy")
 	})
 
 	t.Run("returns an error when given duplicate keys", func(t *testing.T) {
 		_, err := FromEntries([]EntryT[string]{
-			{Key: "foo", Value: big.NewRat(1, 2)},
-			{Key: "foo", Value: big.NewRat(1, 2)},
+			{K: "foo", V: big.NewRat(1, 2)},
+			{K: "foo", V: big.NewRat(1, 2)},
 		})
 		assert.ErrorContains(t, err, "multiple values with same key:")
 	})

@@ -12,7 +12,7 @@ func (wtpl *WeaponTemplate) AvailableCount(unit *Unit, health UnitHealth) int64 
 			continue
 		}
 		for _, e := range m.tpl.Weapons {
-			tpl, count := e.Key, e.Value
+			tpl, count := e.K, e.V
 			if tpl == wtpl {
 				sum += count
 			}

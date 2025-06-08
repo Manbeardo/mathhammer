@@ -21,7 +21,7 @@ func (v RollT) Distribution() prob.Dist[int64] {
 	out := []prob.EntryT[int64]{}
 	for i := range v.N {
 		out = append(out, prob.EntryT[int64]{
-			Key: i + 1, Value: big.NewRat(1, v.N),
+			K: i + 1, V: big.NewRat(1, v.N),
 		})
 	}
 	return util.Must(prob.FromEntries(out))

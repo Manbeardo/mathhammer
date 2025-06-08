@@ -30,13 +30,13 @@ func NewUnit(tpl *UnitTemplate) *Unit {
 
 	for _, utpl := range unitTemplates {
 		for _, e := range utpl.Models {
-			mtpl, count := e.Key, e.Value
+			mtpl, count := e.K, e.V
 			for range count {
 				u.models = append(u.models, NewModel(utpl, mtpl))
 				u.startingHealth = append(u.startingHealth, mtpl.Wounds)
 			}
 			for _, e := range mtpl.Weapons {
-				wtpl := e.Key
+				wtpl := e.K
 				if _, exists := foundWeapons[wtpl]; !exists {
 					u.weaponTemplates = append(u.weaponTemplates, wtpl)
 					foundWeapons[wtpl] = struct{}{}
@@ -114,7 +114,7 @@ type UnitTemplate struct {
 func (u *UnitTemplate) CoreModelCount() int {
 	total := 0
 	for _, entry := range u.Models {
-		total += entry.Value
+		total += entry.V
 	}
 	return total
 }

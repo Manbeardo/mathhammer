@@ -43,9 +43,9 @@ func TestAttack(t *testing.T) {
 				Damage:           2,
 			}
 
-			attackerTpl.Models[0].Key.Weapons = []util.Entry[*core.WeaponTemplate, int]{
+			attackerTpl.Models[0].K.Weapons = []util.Entry[*core.WeaponTemplate, int]{
 				{
-					Key: &core.WeaponTemplate{
+					K: &core.WeaponTemplate{
 						Name: "BIG GUN",
 						Profiles: []*core.WeaponProfileTemplate{
 							weakProfile1,
@@ -53,7 +53,7 @@ func TestAttack(t *testing.T) {
 							weakProfile2,
 						},
 					},
-					Value: 1,
+					V: 1,
 				},
 			}
 			attacker := core.NewUnit(attackerTpl)
@@ -66,7 +66,7 @@ func TestAttack(t *testing.T) {
 
 			assert.Equal(t,
 				[]util.Entry[*core.WeaponProfileTemplate, int64]{
-					{Key: strongProfile, Value: 1},
+					{K: strongProfile, V: 1},
 				},
 				result.SelectedProfiles,
 			)
