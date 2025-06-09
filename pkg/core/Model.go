@@ -25,5 +25,4 @@ type ModelTemplate struct {
 	Wounds     int64
 	Leadership int64
 	Weapons    []util.Entry[*WeaponTemplate, int]
-	Abilities  []Ability
 }

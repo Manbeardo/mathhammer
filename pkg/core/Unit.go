@@ -48,10 +48,6 @@ func NewUnit(tpl *UnitTemplate) *Unit {
 	return u
 }
 
-func (u *Unit) Abilities() []Ability {
-	return u.tpl.Abilities
-}
-
 func (u *Unit) Toughness(health UnitHealth) int64 {
 	// a unit's toughness is equal to the highest toughness
 	// among its bodyguard models
@@ -108,7 +104,6 @@ type UnitTemplate struct {
 	Models     []util.Entry[*ModelTemplate, int]
 	PointsCost int
 	Leaders    []*UnitTemplate
-	Abilities  []Ability
 }
 
 func (u *UnitTemplate) CoreModelCount() int {
