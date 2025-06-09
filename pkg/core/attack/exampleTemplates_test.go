@@ -1,17 +1,17 @@
 package attack
 
 import (
-	"github.com/Manbeardo/mathhammer/pkg/core"
+	"github.com/Manbeardo/mathhammer/pkg/core/unit"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
-func exampleUnitTpl_MEQ(count int) *core.UnitTemplate {
-	return &core.UnitTemplate{
+func exampleUnitTpl_MEQ(count int) *unit.UnitTemplate {
+	return &unit.UnitTemplate{
 		Name:       "Marine Equivalent Squad",
 		PointsCost: 100,
-		Models: []util.Entry[*core.ModelTemplate, int]{
+		Models: []util.Entry[*unit.ModelTemplate, int]{
 			{
-				K: &core.ModelTemplate{
+				K: &unit.ModelTemplate{
 					Name:       "Jimmy Space",
 					Toughness:  4,
 					Save:       3,
@@ -24,13 +24,13 @@ func exampleUnitTpl_MEQ(count int) *core.UnitTemplate {
 	}
 }
 
-func exampleUnitTpl_MEQWithWeaponProfile(count int, wep *core.WeaponProfileTemplate) *core.UnitTemplate {
+func exampleUnitTpl_MEQWithWeaponProfile(count int, wep *unit.WeaponProfileTemplate) *unit.UnitTemplate {
 	tpl := exampleUnitTpl_MEQ(count)
-	tpl.Models[0].K.Weapons = []util.Entry[*core.WeaponTemplate, int]{
+	tpl.Models[0].K.Weapons = []util.Entry[*unit.WeaponTemplate, int]{
 		{
-			K: &core.WeaponTemplate{
+			K: &unit.WeaponTemplate{
 				Name:     "Bullet Gun",
-				Profiles: []*core.WeaponProfileTemplate{wep},
+				Profiles: []*unit.WeaponProfileTemplate{wep},
 			},
 			V: 1,
 		},

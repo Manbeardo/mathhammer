@@ -1,4 +1,4 @@
-package core
+package unit
 
 import "github.com/Manbeardo/mathhammer/pkg/core/value"
 

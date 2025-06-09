@@ -3,7 +3,7 @@ package attack
 import (
 	"testing"
 
-	"github.com/Manbeardo/mathhammer/pkg/core"
+	"github.com/Manbeardo/mathhammer/pkg/core/unit"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 	"github.com/Manbeardo/mathhammer/pkg/core/value"
 	"github.com/stretchr/testify/assert"
@@ -12,10 +12,10 @@ import (
 func TestAttack(t *testing.T) {
 	t.Run("ResolveAttack", func(t *testing.T) {
 		t.Run("selects the best profile from weapons with multiple profiles", func(t *testing.T) {
-			defender := core.NewUnit(exampleUnitTpl_MEQ(2))
+			defender := unit.NewUnit(exampleUnitTpl_MEQ(2))
 			attackerTpl := exampleUnitTpl_MEQ(1)
 
-			strongProfile := &core.WeaponProfileTemplate{
+			strongProfile := &unit.WeaponProfileTemplate{
 				Name:             "killy",
 				RangeInches:      12,
 				Attacks:          value.Int(2),
@@ -24,7 +24,7 @@ func TestAttack(t *testing.T) {
 				ArmorPenetration: 4,
 				Damage:           2,
 			}
-			weakProfile1 := &core.WeaponProfileTemplate{
+			weakProfile1 := &unit.WeaponProfileTemplate{
 				Name:             "spray",
 				RangeInches:      12,
 				Attacks:          value.Int(10),
@@ -33,7 +33,7 @@ func TestAttack(t *testing.T) {
 				ArmorPenetration: 0,
 				Damage:           1,
 			}
-			weakProfile2 := &core.WeaponProfileTemplate{
+			weakProfile2 := &unit.WeaponProfileTemplate{
 				Name:             "bayonetto",
 				RangeInches:      2,
 				Attacks:          value.Int(1),
@@ -43,11 +43,11 @@ func TestAttack(t *testing.T) {
 				Damage:           2,
 			}
 
-			attackerTpl.Models[0].K.Weapons = []util.Entry[*core.WeaponTemplate, int]{
+			attackerTpl.Models[0].K.Weapons = []util.Entry[*unit.WeaponTemplate, int]{
 				{
-					K: &core.WeaponTemplate{
+					K: &unit.WeaponTemplate{
 						Name: "BIG GUN",
-						Profiles: []*core.WeaponProfileTemplate{
+						Profiles: []*unit.WeaponProfileTemplate{
 							weakProfile1,
 							strongProfile,
 							weakProfile2,
@@ -56,7 +56,7 @@ func TestAttack(t *testing.T) {
 					V: 1,
 				},
 			}
-			attacker := core.NewUnit(attackerTpl)
+			attacker := unit.NewUnit(attackerTpl)
 
 			result := NewAttack(AttackOpts{
 				AttackerUnit:   attacker,
@@ -65,7 +65,7 @@ func TestAttack(t *testing.T) {
 			}).ResolveAttack()
 
 			assert.Equal(t,
-				[]util.Entry[*core.WeaponProfileTemplate, int64]{
+				[]util.Entry[*unit.WeaponProfileTemplate, int64]{
 					{K: strongProfile, V: 1},
 				},
 				result.SelectedProfiles,

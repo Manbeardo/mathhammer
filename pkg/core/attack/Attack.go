@@ -1,8 +1,8 @@
 package attack
 
 import (
-	"github.com/Manbeardo/mathhammer/pkg/core"
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/unit"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
@@ -12,17 +12,17 @@ type Attack struct {
 }
 
 type AttackOpts struct {
-	AttackerUnit          *core.Unit
-	DefenderUnit          *core.Unit
-	InitialAttackerHealth core.UnitHealth
-	InitialDefenderHealth core.UnitHealth
+	AttackerUnit          *unit.Unit
+	DefenderUnit          *unit.Unit
+	InitialAttackerHealth unit.UnitHealth
+	InitialDefenderHealth unit.UnitHealth
 	DistanceInches        int64
 }
 
 type Result struct {
-	AttackerHealth   prob.Dist[core.UnitHealth]
-	DefenderHealth   prob.Dist[core.UnitHealth]
-	SelectedProfiles []util.Entry[*core.WeaponProfileTemplate, int64]
+	AttackerHealth   prob.Dist[unit.UnitHealth]
+	DefenderHealth   prob.Dist[unit.UnitHealth]
+	SelectedProfiles []util.Entry[*unit.WeaponProfileTemplate, int64]
 }
 
 func NewAttack(opts AttackOpts) Attack {
@@ -39,13 +39,13 @@ func NewAttack(opts AttackOpts) Attack {
 }
 
 func (a Attack) ResolveAttack() Result {
-	selectedProfiles := []util.Entry[*core.WeaponProfileTemplate, int64]{}
+	selectedProfiles := []util.Entry[*unit.WeaponProfileTemplate, int64]{}
 	defenderHealth := a.InitialDefenderHealth.ToDist()
 	for _, wtpl := range a.AttackerUnit.WeaponTemplates() {
 		count := wtpl.AvailableCount(a.AttackerUnit, a.InitialAttackerHealth)
 		bestResult := defenderHealth
-		bestWoundsRemaining := core.MeanWoundsRemaining(defenderHealth)
-		var bestProfile *core.WeaponProfileTemplate
+		bestWoundsRemaining := unit.MeanWoundsRemaining(defenderHealth)
+		var bestProfile *unit.WeaponProfileTemplate
 		for _, profile := range wtpl.Profiles {
 			result := Profile{
 				Attack:                a,
@@ -53,7 +53,7 @@ func (a Attack) ResolveAttack() Result {
 				AttackerWeaponCount:   count,
 				DefenderHealth:        defenderHealth,
 			}.ResolveProfile()
-			woundsRemaining := core.MeanWoundsRemaining(result)
+			woundsRemaining := unit.MeanWoundsRemaining(result)
 			if bestWoundsRemaining.Cmp(woundsRemaining) == 1 {
 				bestResult = result
 				bestWoundsRemaining = woundsRemaining
@@ -62,7 +62,7 @@ func (a Attack) ResolveAttack() Result {
 		}
 		defenderHealth = bestResult
 		if bestProfile != nil {
-			selectedProfiles = append(selectedProfiles, util.Entry[*core.WeaponProfileTemplate, int64]{
+			selectedProfiles = append(selectedProfiles, util.Entry[*unit.WeaponProfileTemplate, int64]{
 				K: bestProfile,
 				V: count,
 			})

@@ -1,4 +1,4 @@
-package core
+package unit
 
 type WeaponTemplate struct {
 	Name     string

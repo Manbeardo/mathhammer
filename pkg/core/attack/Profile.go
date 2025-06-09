@@ -3,19 +3,19 @@ package attack
 import (
 	"slices"
 
-	"github.com/Manbeardo/mathhammer/pkg/core"
 	"github.com/Manbeardo/mathhammer/pkg/core/check"
 	"github.com/Manbeardo/mathhammer/pkg/core/modifier"
 	"github.com/Manbeardo/mathhammer/pkg/core/prob"
+	"github.com/Manbeardo/mathhammer/pkg/core/unit"
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 	"github.com/Manbeardo/mathhammer/pkg/core/value"
 )
 
 type Profile struct {
 	Attack
-	AttackerWeaponProfile *core.WeaponProfileTemplate
+	AttackerWeaponProfile *unit.WeaponProfileTemplate
 	AttackerWeaponCount   int64
-	DefenderHealth        prob.Dist[core.UnitHealth]
+	DefenderHealth        prob.Dist[unit.UnitHealth]
 }
 
 func (a Profile) attacks() prob.Dist[int64] {
@@ -70,7 +70,7 @@ func (a Profile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 	})
 }
 
-func (a Profile) allocateWound(healthSlice []int64) (m *core.Model, idx int) {
+func (a Profile) allocateWound(healthSlice []int64) (m *unit.Model, idx int) {
 	// TODO: [PRECISION]
 	for idx, health := range healthSlice {
 		if health > 0 {
@@ -80,7 +80,7 @@ func (a Profile) allocateWound(healthSlice []int64) (m *core.Model, idx int) {
 	return nil, -1
 }
 
-func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.UnitHealth] {
+func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.UnitHealth] {
 	ap := a.AttackerWeaponProfile.ArmorPenetration
 	saveModifiers := modifier.Set{
 		modifier.Add(ap),
@@ -88,13 +88,13 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 
 	return util.Must(prob.FlatMap(
 		woundDist,
-		func(wounds int64) prob.Dist[core.UnitHealth] {
+		func(wounds int64) prob.Dist[unit.UnitHealth] {
 			healthDist := a.DefenderHealth
 			for range wounds {
 				// TODO: memoize this
 				healthDist = util.Must(prob.FlatMap(
 					healthDist,
-					func(health core.UnitHealth) prob.Dist[core.UnitHealth] {
+					func(health unit.UnitHealth) prob.Dist[unit.UnitHealth] {
 						model, idx := a.allocateWound(health)
 						if model == nil {
 							return util.Must(prob.FromConst(health))
@@ -109,7 +109,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 
 						return util.Must(prob.Map(
 							checkDist,
-							func(outcome check.Outcome) core.UnitHealth {
+							func(outcome check.Outcome) unit.UnitHealth {
 								healthCopy := slices.Clone(health)
 								damage := a.AttackerWeaponProfile.Damage
 								for range outcome.Failures() {
@@ -131,7 +131,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[core.
 	))
 }
 
-func (a Profile) ResolveProfile() prob.Dist[core.UnitHealth] {
+func (a Profile) ResolveProfile() prob.Dist[unit.UnitHealth] {
 	attacks := a.attacks()
 
 	hitOutcomes := a.hits(attacks)
