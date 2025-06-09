@@ -14,14 +14,14 @@ type Attack struct {
 type AttackOpts struct {
 	AttackerUnit          *unit.Unit
 	DefenderUnit          *unit.Unit
-	InitialAttackerHealth unit.UnitHealth
-	InitialDefenderHealth unit.UnitHealth
+	InitialAttackerHealth unit.Health
+	InitialDefenderHealth unit.Health
 	DistanceInches        int64
 }
 
 type Result struct {
-	AttackerHealth   prob.Dist[unit.UnitHealth]
-	DefenderHealth   prob.Dist[unit.UnitHealth]
+	AttackerHealth   prob.Dist[unit.Health]
+	DefenderHealth   prob.Dist[unit.Health]
 	SelectedProfiles []util.Entry[*unit.WeaponProfileTemplate, int64]
 }
 

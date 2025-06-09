@@ -2,19 +2,17 @@ package unit
 
 import (
 	"slices"
-
-	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
 type Unit struct {
-	tpl             *UnitTemplate
+	tpl             *Template
 	models          []*Model
 	weaponTemplates []*WeaponTemplate
 	leaders         []*Unit
-	startingHealth  UnitHealth
+	startingHealth  Health
 }
 
-func NewUnit(tpl *UnitTemplate) *Unit {
+func NewUnit(tpl *Template) *Unit {
 	u := &Unit{
 		tpl: tpl,
 	}
@@ -25,7 +23,7 @@ func NewUnit(tpl *UnitTemplate) *Unit {
 		u.leaders = append(u.leaders, NewUnit(ltpl))
 	}
 
-	unitTemplates := []*UnitTemplate{tpl}
+	unitTemplates := []*Template{tpl}
 	unitTemplates = append(unitTemplates, tpl.Leaders...)
 
 	for _, utpl := range unitTemplates {
@@ -48,7 +46,7 @@ func NewUnit(tpl *UnitTemplate) *Unit {
 	return u
 }
 
-func (u *Unit) Toughness(health UnitHealth) int64 {
+func (u *Unit) Toughness(health Health) int64 {
 	// a unit's toughness is equal to the highest toughness
 	// among its bodyguard models
 	t := int64(0)
@@ -64,7 +62,7 @@ func (u *Unit) Toughness(health UnitHealth) int64 {
 	return t
 }
 
-func (u *Unit) StartingHealth() UnitHealth {
+func (u *Unit) StartingHealth() Health {
 	return slices.Clone(u.startingHealth)
 }
 
@@ -76,7 +74,7 @@ func (u *Unit) Models() []*Model {
 	return slices.Clone(u.models)
 }
 
-func (u *Unit) SurvivingModels(health UnitHealth) []*ModelTemplate {
+func (u *Unit) SurvivingModels(health Health) []*ModelTemplate {
 	out := []*ModelTemplate{}
 	for i, m := range u.models {
 		if health[i] > 0 {
@@ -86,7 +84,7 @@ func (u *Unit) SurvivingModels(health UnitHealth) []*ModelTemplate {
 	return out
 }
 
-func (u *Unit) PointsLost(health UnitHealth) float64 {
+func (u *Unit) PointsLost(health Health) float64 {
 	sum := 0.0
 	for i, m := range u.models {
 		remainingRatio := 1 - (float64(health[i]) / float64(m.tpl.Wounds))
@@ -97,27 +95,4 @@ func (u *Unit) PointsLost(health UnitHealth) float64 {
 
 func (u *Unit) WeaponTemplates() []*WeaponTemplate {
 	return slices.Clone(u.weaponTemplates)
-}
-
-type UnitTemplate struct {
-	Name       string
-	Models     []util.Entry[*ModelTemplate, int]
-	PointsCost int
-	Leaders    []*UnitTemplate
-}
-
-func (u *UnitTemplate) CoreModelCount() int {
-	total := 0
-	for _, entry := range u.Models {
-		total += entry.V
-	}
-	return total
-}
-
-func (u *UnitTemplate) ModelCount() int {
-	total := u.CoreModelCount()
-	for _, l := range u.Leaders {
-		total += l.ModelCount()
-	}
-	return total
 }

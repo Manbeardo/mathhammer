@@ -15,7 +15,7 @@ type Profile struct {
 	Attack
 	AttackerWeaponProfile *unit.WeaponProfileTemplate
 	AttackerWeaponCount   int64
-	DefenderHealth        prob.Dist[unit.UnitHealth]
+	DefenderHealth        prob.Dist[unit.Health]
 }
 
 func (a Profile) attacks() prob.Dist[int64] {
@@ -80,7 +80,7 @@ func (a Profile) allocateWound(healthSlice []int64) (m *unit.Model, idx int) {
 	return nil, -1
 }
 
-func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.UnitHealth] {
+func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.Health] {
 	ap := a.AttackerWeaponProfile.ArmorPenetration
 	saveModifiers := modifier.Set{
 		modifier.Add(ap),
@@ -88,13 +88,13 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.
 
 	return util.Must(prob.FlatMap(
 		woundDist,
-		func(wounds int64) prob.Dist[unit.UnitHealth] {
+		func(wounds int64) prob.Dist[unit.Health] {
 			healthDist := a.DefenderHealth
 			for range wounds {
 				// TODO: memoize this
 				healthDist = util.Must(prob.FlatMap(
 					healthDist,
-					func(health unit.UnitHealth) prob.Dist[unit.UnitHealth] {
+					func(health unit.Health) prob.Dist[unit.Health] {
 						model, idx := a.allocateWound(health)
 						if model == nil {
 							return util.Must(prob.FromConst(health))
@@ -109,7 +109,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.
 
 						return util.Must(prob.Map(
 							checkDist,
-							func(outcome check.Outcome) unit.UnitHealth {
+							func(outcome check.Outcome) unit.Health {
 								healthCopy := slices.Clone(health)
 								damage := a.AttackerWeaponProfile.Damage
 								for range outcome.Failures() {
@@ -131,7 +131,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.
 	))
 }
 
-func (a Profile) ResolveProfile() prob.Dist[unit.UnitHealth] {
+func (a Profile) ResolveProfile() prob.Dist[unit.Health] {
 	attacks := a.attacks()
 
 	hitOutcomes := a.hits(attacks)

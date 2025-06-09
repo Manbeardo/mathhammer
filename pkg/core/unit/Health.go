@@ -9,9 +9,9 @@ import (
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
-type UnitHealth []int64
+type Health []int64
 
-func (mh UnitHealth) WoundsRemaining() int64 {
+func (mh Health) WoundsRemaining() int64 {
 	sum := int64(0)
 	for _, h := range mh {
 		sum += h
@@ -19,7 +19,7 @@ func (mh UnitHealth) WoundsRemaining() int64 {
 	return sum
 }
 
-func (mh UnitHealth) ModelsRemaining() int64 {
+func (mh Health) ModelsRemaining() int64 {
 	sum := int64(0)
 	for _, h := range mh {
 		if h > 0 {
@@ -29,15 +29,15 @@ func (mh UnitHealth) ModelsRemaining() int64 {
 	return sum
 }
 
-func (mh UnitHealth) StringKey() string {
+func (mh Health) StringKey() string {
 	return fmt.Sprintf("%v", mh)
 }
 
-func (mh UnitHealth) ToDist() prob.Dist[UnitHealth] {
+func (mh Health) ToDist() prob.Dist[Health] {
 	return util.Must(prob.FromConst(mh))
 }
 
-func MeanWoundsRemaining(dist prob.Dist[UnitHealth]) *big.Rat {
+func MeanWoundsRemaining(dist prob.Dist[Health]) *big.Rat {
 	avg := big.NewRat(0, 1)
 	for health, p := range dist.Iter() {
 		w := big.NewRat(health.WoundsRemaining(), 1)
@@ -48,7 +48,7 @@ func MeanWoundsRemaining(dist prob.Dist[UnitHealth]) *big.Rat {
 	return avg
 }
 
-func CompareHealth(a, b UnitHealth) int {
+func CompareHealth(a, b Health) int {
 	if c := cmp.Compare(a.WoundsRemaining(), b.WoundsRemaining()); c != 0 {
 		return c
 	}

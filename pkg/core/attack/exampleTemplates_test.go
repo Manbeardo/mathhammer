@@ -5,8 +5,8 @@ import (
 	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
-func exampleUnitTpl_MEQ(count int) *unit.UnitTemplate {
-	return &unit.UnitTemplate{
+func exampleUnitTpl_MEQ(count int) *unit.Template {
+	return &unit.Template{
 		Name:       "Marine Equivalent Squad",
 		PointsCost: 100,
 		Models: []util.Entry[*unit.ModelTemplate, int]{
@@ -24,7 +24,7 @@ func exampleUnitTpl_MEQ(count int) *unit.UnitTemplate {
 	}
 }
 
-func exampleUnitTpl_MEQWithWeaponProfile(count int, wep *unit.WeaponProfileTemplate) *unit.UnitTemplate {
+func exampleUnitTpl_MEQWithWeaponProfile(count int, wep *unit.WeaponProfileTemplate) *unit.Template {
 	tpl := exampleUnitTpl_MEQ(count)
 	tpl.Models[0].K.Weapons = []util.Entry[*unit.WeaponTemplate, int]{
 		{

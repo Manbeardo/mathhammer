@@ -305,7 +305,7 @@ func TestProfile(t *testing.T) {
 
 			woundDist := util.Must(prob.Map(
 				a.resolveNormalWounds(value.Int(2).Distribution()),
-				func(s unit.UnitHealth) int64 { return s.WoundsRemaining() },
+				func(s unit.Health) int64 { return s.WoundsRemaining() },
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
@@ -342,7 +342,7 @@ func TestProfile(t *testing.T) {
 
 			healthDist := util.Must(prob.Map(
 				a.ResolveProfile(),
-				func(s unit.UnitHealth) int64 { return s.WoundsRemaining() },
+				func(s unit.Health) int64 { return s.WoundsRemaining() },
 			))
 
 			assert.Equal(t, util.Must(prob.FromMap(prob.MapT[int64]{
