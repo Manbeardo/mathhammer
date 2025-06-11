@@ -72,7 +72,7 @@ func FromEntries[T any](m []EntryT[T]) (Dist[T], error) {
 }
 
 func FromMap[T comparable](m MapT[T]) (Dist[T], error) {
-	return FromEntries(util.Entries(m))
+	return FromEntries(util.EntriesFromMap(m))
 }
 
 // FromConst returns a distribution whose sole outcome is v
@@ -139,7 +139,7 @@ func (d Dist[T]) vmapComparator() Comparator[util.Entry[Key, T]] {
 }
 
 func (d Dist[T]) Keys() []Key {
-	entries := util.Entries(d.vmap)
+	entries := util.EntriesFromMap(d.vmap)
 	slices.SortFunc(entries, d.vmapComparator())
 	keys := []Key{}
 	for _, e := range entries {

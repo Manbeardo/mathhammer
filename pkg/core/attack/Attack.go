@@ -22,7 +22,7 @@ type AttackOpts struct {
 type Result struct {
 	AttackerHealth   prob.Dist[unit.Health]
 	DefenderHealth   prob.Dist[unit.Health]
-	SelectedProfiles []util.Entry[*unit.WeaponProfileTemplate, int64]
+	SelectedProfiles *util.OrderedMap[*unit.WeaponProfileKind, int]
 }
 
 func NewAttack(opts AttackOpts) Attack {
@@ -39,14 +39,14 @@ func NewAttack(opts AttackOpts) Attack {
 }
 
 func (a Attack) ResolveAttack() Result {
-	selectedProfiles := []util.Entry[*unit.WeaponProfileTemplate, int64]{}
+	selectedProfiles := util.NewOrderedMap[*unit.WeaponProfileKind, int]()
 	defenderHealth := a.InitialDefenderHealth.ToDist()
-	for _, wtpl := range a.AttackerUnit.WeaponTemplates() {
-		count := wtpl.AvailableCount(a.AttackerUnit, a.InitialAttackerHealth)
+	for wkind, ws := range a.AttackerUnit.SurvivingWeapons(a.InitialAttackerHealth).Iter() {
+		count := len(ws)
 		bestResult := defenderHealth
 		bestWoundsRemaining := unit.MeanWoundsRemaining(defenderHealth)
-		var bestProfile *unit.WeaponProfileTemplate
-		for _, profile := range wtpl.Profiles {
+		var bestProfile *unit.WeaponProfileKind
+		for _, profile := range wkind.Profiles() {
 			result := Profile{
 				Attack:                a,
 				AttackerWeaponProfile: profile,
@@ -62,10 +62,7 @@ func (a Attack) ResolveAttack() Result {
 		}
 		defenderHealth = bestResult
 		if bestProfile != nil {
-			selectedProfiles = append(selectedProfiles, util.Entry[*unit.WeaponProfileTemplate, int64]{
-				K: bestProfile,
-				V: count,
-			})
+			selectedProfiles.Put(bestProfile, count)
 		}
 	}
 	return Result{

@@ -2,45 +2,54 @@ package unit
 
 import (
 	"slices"
+
+	"github.com/Manbeardo/mathhammer/pkg/core/util"
 )
 
-type Unit struct {
-	tpl             *Template
-	models          []*Model
-	weaponTemplates []*WeaponTemplate
-	leaders         []*Unit
-	startingHealth  Health
+type UnitDatasheet struct {
+	Name       string
+	PointsCost int
 }
 
-func NewUnit(tpl *Template) *Unit {
+type UnitTemplate struct {
+	baseTemplate[UnitDatasheet]
+	Models []*ModelTemplate
+}
+
+func NewUnitTemplate(stats UnitDatasheet, models ...*ModelTemplate) *UnitTemplate {
+	return &UnitTemplate{
+		baseTemplate: createBaseTemplate(stats),
+		Models:       slices.Clone(models),
+	}
+}
+
+type UnitID struct {
+	childID[*Battle, BattleID]
+}
+
+func (id UnitID) getInstance() *Unit {
+	return id.getBattle().units[id]
+}
+
+type Unit struct {
+	instance[*Unit, UnitID, UnitDatasheet, *UnitTemplate]
+	models []*Model
+}
+
+func (b *Battle) NewUnit(tpl *UnitTemplate) *Unit {
+	id := UnitID{
+		childID: createChildID(b.id, len(b.units)),
+	}
 	u := &Unit{
-		tpl: tpl,
+		instance: createInstance(b, id, tpl),
 	}
+	b.units[u.id] = u
 
-	foundWeapons := map[*WeaponTemplate]struct{}{}
-
-	for _, ltpl := range tpl.Leaders {
-		u.leaders = append(u.leaders, NewUnit(ltpl))
-	}
-
-	unitTemplates := []*Template{tpl}
-	unitTemplates = append(unitTemplates, tpl.Leaders...)
-
-	for _, utpl := range unitTemplates {
-		for _, e := range utpl.Models {
-			mtpl, count := e.K, e.V
-			for range count {
-				u.models = append(u.models, NewModel(utpl, mtpl))
-				u.startingHealth = append(u.startingHealth, mtpl.Wounds)
-			}
-			for _, e := range mtpl.Weapons {
-				wtpl := e.K
-				if _, exists := foundWeapons[wtpl]; !exists {
-					u.weaponTemplates = append(u.weaponTemplates, wtpl)
-					foundWeapons[wtpl] = struct{}{}
-				}
-			}
+	for i, mtpl := range tpl.Models {
+		mid := ModelID{
+			childID: createChildID(u.id, i),
 		}
+		u.models = append(u.models, b.newModel(mid, mtpl))
 	}
 
 	return u
@@ -49,36 +58,44 @@ func NewUnit(tpl *Template) *Unit {
 func (u *Unit) Toughness(health Health) int64 {
 	// a unit's toughness is equal to the highest toughness
 	// among its bodyguard models
-	t := int64(0)
-	for i := range u.tpl.CoreModelCount() {
+	ts := []int64{}
+	for i := range u.models {
 		if health[i] == 0 {
 			continue
 		}
-		mtpl := u.models[i].tpl
-		if mtpl.Toughness > t {
-			t = mtpl.Toughness
-		}
+		ts = append(ts, u.models[i].Datasheet().Toughness)
 	}
-	return t
+	if len(ts) == 0 {
+		return 0
+	}
+	return slices.Max(ts)
 }
 
 func (u *Unit) StartingHealth() Health {
-	return slices.Clone(u.startingHealth)
-}
-
-func (u *Unit) Model(i int) *Model {
-	return u.models[i]
+	health := Health{}
+	for _, model := range u.models {
+		health = append(health, model.Datasheet().Wounds)
+	}
+	return health
 }
 
 func (u *Unit) Models() []*Model {
 	return slices.Clone(u.models)
 }
 
-func (u *Unit) SurvivingModels(health Health) []*ModelTemplate {
-	out := []*ModelTemplate{}
-	for i, m := range u.models {
-		if health[i] > 0 {
-			out = append(out, m.tpl)
+func (u *Unit) WeaponProfiles() [][]*WeaponProfile {
+	out := [][]*WeaponProfile{}
+	for _, m := range u.models {
+		out = append(out, m.WeaponProfiles()...)
+	}
+	return out
+}
+
+func (u *Unit) SurvivingModels(health Health) []*Model {
+	out := []*Model{}
+	for _, m := range u.models {
+		if m.IsAlive(health) {
+			out = append(out, m)
 		}
 	}
 	return out
@@ -86,13 +103,19 @@ func (u *Unit) SurvivingModels(health Health) []*ModelTemplate {
 
 func (u *Unit) PointsLost(health Health) float64 {
 	sum := 0.0
-	for i, m := range u.models {
-		remainingRatio := 1 - (float64(health[i]) / float64(m.tpl.Wounds))
-		sum += remainingRatio * m.points
+	for _, m := range u.models {
+		sum += m.PointsLost(health)
 	}
 	return sum
 }
 
-func (u *Unit) WeaponTemplates() []*WeaponTemplate {
-	return slices.Clone(u.weaponTemplates)
+func (u *Unit) SurvivingWeapons(health Health) *util.OrderedMap[*WeaponKind, []*Weapon] {
+	out := util.NewOrderedMap[*WeaponKind, []*Weapon]()
+	for _, m := range u.SurvivingModels(health) {
+		for _, w := range m.weapons {
+			ws, _ := out.Get(w.kind)
+			out.Put(w.kind, append(ws, w))
+		}
+	}
+	return out
 }

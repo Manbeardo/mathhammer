@@ -15,16 +15,17 @@ import (
 func TestProfile(t *testing.T) {
 	t.Run("attacks", func(t *testing.T) {
 		t.Run("applies the weapon profile the correct number of times", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            3,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -32,7 +33,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   10,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -43,16 +44,17 @@ func TestProfile(t *testing.T) {
 		})
 
 		t.Run("0 attacks when attack is outside of weapon range", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      10,
 				Attacks:          value.Int(1),
 				Skill:            3,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -60,7 +62,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 11,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   10,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -71,16 +73,17 @@ func TestProfile(t *testing.T) {
 		})
 
 		t.Run("0 attacks when using melee weapon in ranged attack", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            3,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(10, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -88,7 +91,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 0,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   10,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -99,16 +102,17 @@ func TestProfile(t *testing.T) {
 		})
 
 		t.Run("handles random values correctly", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Roll(2),
 				Skill:            0,
 				Strength:         value.Int(5),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(4, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(4, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -116,7 +120,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   4,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -135,16 +139,17 @@ func TestProfile(t *testing.T) {
 
 	t.Run("hits", func(t *testing.T) {
 		t.Run("calculates hits correctly for a simple example", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -152,7 +157,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   3,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -171,16 +176,17 @@ func TestProfile(t *testing.T) {
 		})
 
 		t.Run("calculates hits correctly for a simple example with random attacks", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -188,7 +194,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   3,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -208,16 +214,17 @@ func TestProfile(t *testing.T) {
 
 	t.Run("wounds", func(t *testing.T) {
 		t.Run("calculates wounds correctly for a simple example", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(3),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -225,7 +232,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   3,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -244,16 +251,17 @@ func TestProfile(t *testing.T) {
 		})
 
 		t.Run("calculates wounds correctly for a simple example with random attacks", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(10))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(10))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(3),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(3, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -261,7 +269,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   3,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -281,16 +289,17 @@ func TestProfile(t *testing.T) {
 
 	t.Run("resolveNormalWounds", func(t *testing.T) {
 		t.Run("calculates health correctly for a simple example", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(2))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(2))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(1),
 				Skill:            4,
 				Strength:         value.Int(3),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -298,7 +307,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   3,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}
@@ -318,16 +327,17 @@ func TestProfile(t *testing.T) {
 
 	t.Run("ResolveProfile", func(t *testing.T) {
 		t.Run("works correctly in a basic MEQ example", func(t *testing.T) {
-			defender := unit.NewUnit(exampleUnitTpl_MEQ(2))
-			wep := &unit.WeaponProfileTemplate{
+			battle := unit.NewBattle()
+			defender := battle.NewUnit(exampleUnitTpl_MEQ(2))
+			wep := unit.NewWeaponProfileTemplate(unit.WeaponProfileDatasheet{
 				RangeInches:      12,
 				Attacks:          value.Int(2),
 				Skill:            3,
 				Strength:         value.Int(4),
 				ArmorPenetration: 1,
 				Damage:           1,
-			}
-			attacker := unit.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
+			})
+			attacker := battle.NewUnit(exampleUnitTpl_MEQWithWeaponProfile(2, wep))
 
 			a := Profile{
 				Attack: NewAttack(AttackOpts{
@@ -335,7 +345,7 @@ func TestProfile(t *testing.T) {
 					DefenderUnit:   defender,
 					DistanceInches: 6,
 				}),
-				AttackerWeaponProfile: wep,
+				AttackerWeaponProfile: attacker.WeaponProfiles()[0][0].Kind(),
 				AttackerWeaponCount:   2,
 				DefenderHealth:        defender.StartingHealth().ToDist(),
 			}

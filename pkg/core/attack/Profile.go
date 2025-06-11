@@ -13,26 +13,26 @@ import (
 
 type Profile struct {
 	Attack
-	AttackerWeaponProfile *unit.WeaponProfileTemplate
-	AttackerWeaponCount   int64
+	AttackerWeaponProfile *unit.WeaponProfileKind
+	AttackerWeaponCount   int
 	DefenderHealth        prob.Dist[unit.Health]
 }
 
 func (a Profile) attacks() prob.Dist[int64] {
-	if a.DistanceInches > a.AttackerWeaponProfile.RangeInches ||
-		(a.DistanceInches == 0 && a.AttackerWeaponProfile.RangeInches > 0) {
+	if a.DistanceInches > a.AttackerWeaponProfile.Datasheet().RangeInches ||
+		(a.DistanceInches == 0 && a.AttackerWeaponProfile.Datasheet().RangeInches > 0) {
 		return value.Int(0).Distribution()
 	}
 
 	return value.Sum(
 		slices.Repeat([]value.Interface{
-			a.AttackerWeaponProfile.Attacks,
+			a.AttackerWeaponProfile.Datasheet().Attacks,
 		}, int(a.AttackerWeaponCount))...,
 	).Distribution()
 }
 
 func (a Profile) hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
-	skill := a.AttackerWeaponProfile.Skill
+	skill := a.AttackerWeaponProfile.Datasheet().Skill
 	return check.Calculate(value.Roll(6), check.Opts{
 		Count:                    attacks,
 		SuccessTarget:            value.Int(skill),
@@ -42,7 +42,7 @@ func (a Profile) hits(attacks prob.Dist[int64]) prob.Dist[check.Outcome] {
 }
 
 func (a Profile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
-	strengthDist := a.AttackerWeaponProfile.Strength.Distribution()
+	strengthDist := a.AttackerWeaponProfile.Datasheet().Strength.Distribution()
 	toughness := a.DefenderToughness
 	targetDist := util.Must(prob.Map(
 		strengthDist,
@@ -70,18 +70,18 @@ func (a Profile) wounds(hits prob.Dist[int64]) prob.Dist[check.Outcome] {
 	})
 }
 
-func (a Profile) allocateWound(healthSlice []int64) (m *unit.Model, idx int) {
+func (a Profile) allocateWound(health unit.Health) (m *unit.Model, idx int) {
 	// TODO: [PRECISION]
-	for idx, health := range healthSlice {
-		if health > 0 {
-			return a.DefenderUnit.Model(idx), idx
+	for i, m := range a.AttackerUnit.Models() {
+		if m.IsAlive(health) {
+			return m, i
 		}
 	}
 	return nil, -1
 }
 
 func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.Health] {
-	ap := a.AttackerWeaponProfile.ArmorPenetration
+	ap := a.AttackerWeaponProfile.Datasheet().ArmorPenetration
 	saveModifiers := modifier.Set{
 		modifier.Add(ap),
 	}
@@ -100,7 +100,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.
 							return util.Must(prob.FromConst(health))
 						}
 
-						save := saveModifiers.Apply(modifier.ModelArmourSave, model.Save())
+						save := saveModifiers.Apply(modifier.ModelArmourSave, model.Datasheet().Save)
 
 						checkDist := check.Calculate(value.Roll(6), check.Opts{
 							SuccessTarget:            value.Int(save),
@@ -111,7 +111,7 @@ func (a Profile) resolveNormalWounds(woundDist prob.Dist[int64]) prob.Dist[unit.
 							checkDist,
 							func(outcome check.Outcome) unit.Health {
 								healthCopy := slices.Clone(health)
-								damage := a.AttackerWeaponProfile.Damage
+								damage := a.AttackerWeaponProfile.Datasheet().Damage
 								for range outcome.Failures() {
 									health := healthCopy[idx]
 									if damage > health {
